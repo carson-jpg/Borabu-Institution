@@ -4,7 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config({ path: './.env' });
+dotenv.config({ path: '.env' });
 
 const app = express();
 
@@ -27,14 +27,18 @@ app.use('/api/fees', require('./routes/fees'));
 app.use('/api/transcripts', require('./routes/transcripts'));
 
 // Connect to MongoDB with better error handling and retry options
-mongoose.connect(process.env.MONGODB_URI, {
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/school-portal';
+console.log('Attempting to connect to MongoDB with URI:', mongoURI);
+
+mongoose.connect(mongoURI, {
   serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds instead of 30
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
 })
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  console.log('Please check your internet connection and MongoDB Atlas cluster status');
+  console.log('Please check your MongoDB connection string in the .env file');
+  console.log('Current MONGODB_URI environment variable:', process.env.MONGODB_URI);
 });
 
 // Basic route
