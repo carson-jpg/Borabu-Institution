@@ -27,7 +27,14 @@ app.use('/api/fees', require('./routes/fees'));
 app.use('/api/transcripts', require('./routes/transcripts'));
 
 // Connect to MongoDB with better error handling and retry options
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/school-portal';
+const mongoURI = process.env.MONGODB_URI;
+if (!mongoURI) {
+  console.error('MONGODB_URI environment variable is not set!');
+  console.log('Please set the MONGODB_URI in your .env file with a valid MongoDB connection string');
+  console.log('Example: MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database');
+  process.exit(1);
+}
+
 console.log('Attempting to connect to MongoDB with URI:', mongoURI);
 
 mongoose.connect(mongoURI, {
@@ -39,6 +46,7 @@ mongoose.connect(mongoURI, {
   console.error('MongoDB connection error:', err);
   console.log('Please check your MongoDB connection string in the .env file');
   console.log('Current MONGODB_URI environment variable:', process.env.MONGODB_URI);
+  console.log('If using MongoDB Atlas, ensure your IP is whitelisted and credentials are correct');
 });
 
 // Basic route
