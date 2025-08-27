@@ -45,9 +45,21 @@ export const authAPI = {
       body: JSON.stringify({ email, password })
     });
   },
+  register: async (userData: any) => {
+    return apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  },
   getCurrentUser: async () => {
     return apiRequest('/auth/current-user', {
       method: 'GET'
+    });
+  },
+  forgotPassword: async (email: string) => {
+    return apiRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
     });
   },
   // ... other methods
