@@ -98,7 +98,8 @@ const seedAdminTeachers = async () => {
         password: admin.password, // Plain password - will be hashed by User model
         role: admin.role,
         isPreRegistered: admin.isPreRegistered,
-        requiresPasswordReset: admin.requiresPasswordReset
+        requiresPasswordReset: admin.requiresPasswordReset,
+        emailVerified: true // Pre-registered accounts should be email verified
       });
 
       await adminUser.save();
@@ -121,7 +122,8 @@ const seedAdminTeachers = async () => {
         password: teacher.password, // Plain password - will be hashed by User model
         role: teacher.role,
         isPreRegistered: teacher.isPreRegistered,
-        requiresPasswordReset: teacher.requiresPasswordReset
+        requiresPasswordReset: teacher.requiresPasswordReset,
+        emailVerified: true // Pre-registered accounts should be email verified
       });
 
       await teacherUser.save();

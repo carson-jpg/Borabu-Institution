@@ -16,6 +16,7 @@ const resetPasswords = async () => {
     const admin = await User.findOne({ email: 'admin@borabutti.ac.ke' });
     if (admin) {
       admin.password = 'Admin123!'; // Set plain password - User model will hash it
+      admin.emailVerified = true; // Ensure email is verified
       await admin.save();
       console.log('✅ Admin password reset successfully');
     } else {
@@ -35,6 +36,7 @@ const resetPasswords = async () => {
       const teacher = await User.findOne({ email });
       if (teacher) {
         teacher.password = 'Teacher123!'; // Set plain password - User model will hash it
+        teacher.emailVerified = true; // Ensure email is verified
         await teacher.save();
         console.log(`✅ Teacher password reset for: ${email}`);
       } else {
