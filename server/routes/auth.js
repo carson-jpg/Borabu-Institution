@@ -7,17 +7,93 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Email transporter configuration
+// Enhanced email transporter configuration with better error handling
 const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+  try {
+    if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('Email configuration is incomplete. Email functionality will be disabled.');
+      return null;
     }
-  });
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT || 587,
+      secure: process.env.EMAIL_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    // Verify connection configuration
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('Email transporter verification failed:', error);
+      } else {
+        console.log('Email transporter is ready to send messages');
+      }
+    });
+
+    return transporter;
+  } catch (error) {
+    console.error('Failed to create email transporter:', error);
+    return null;
+  }
+};
+
+// Helper function to send email with better error handling
+const sendEmail = async (to, subject, html) => {
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.error('Cannot send email: Email transporter not configured');
+      return false;
+    }
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to,
+      subject,
+      html
+    });
+
+    console.log(`Email sent successfully to: ${to}`);
+    return true;
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return false;
+  }
+};
+
+// Helper function to generate email verification token
+const generateEmailVerificationToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+// Helper function to send verification email
+const sendVerificationEmail = async (user, token) => {
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  
+  const message = `
+    <h2>Email Verification</h2>
+    <p>Hello ${user.name},</p>
+    <p>Thank you for registering with Borabu Technical Training Institute!</p>
+    <p>Please click the link below to verify your email address:</p>
+    <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #10B981; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
+    <p>This link will expire in 24 hours.</p>
+    <p>If you did not create this account, please ignore this email.</p>
+    <br>
+    <p>Best regards,<br>Borabu Technical Training Institute</p>
+  `;
+
+  return await sendEmail(
+    user.email,
+    'Verify Your Email - Borabu Technical Training Institute',
+    message
+  );
 };
 
 // Register
@@ -52,12 +128,15 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Admission number and department are required for students' });
     }
 
-    // Create new user
+    // Create new user with email verification
+    const emailVerificationToken = generateEmailVerificationToken();
     const user = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password,
-      role
+      role,
+      emailVerificationToken,
+      emailVerified: false
     });
 
     await user.save();
@@ -76,6 +155,9 @@ router.post('/register', async (req, res) => {
       await studentRecord.save();
     }
 
+    // Send verification email
+    const emailSent = await sendVerificationEmail(user, emailVerificationToken);
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
@@ -84,14 +166,18 @@ router.post('/register', async (req, res) => {
     );
 
     res.status(201).json({
-      message: 'Account created successfully',
+      message: emailSent 
+        ? 'Account created successfully. Please check your email to verify your account.' 
+        : 'Account created successfully, but verification email could not be sent. Please contact support.',
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        emailVerified: user.emailVerified
+      },
+      requiresVerification: !emailSent
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -112,7 +198,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Check if user exists - include password field for comparison
+    // Check if user exists - include password field for comparison and verification status
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
@@ -121,6 +207,11 @@ router.post('/login', async (req, res) => {
     // Check if user is active
     if (!user.isActive) {
       return res.status(400).json({ message: 'Account has been deactivated. Please contact administrator.' });
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return res.status(400).json({ message: 'Email not verified. Please check your inbox for the verification email.' });
     }
 
     // Check password
@@ -329,6 +420,73 @@ router.post('/logout', auth, async (req, res) => {
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Hash the token to compare with stored hash
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid verification token
+    const user = await User.findOne({
+      emailVerificationToken: tokenHash,
+      emailVerified: false
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification token' });
+    }
+
+    // Update email verification status
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined; // Clear the token after verification
+    await user.save();
+
+    res.json({ message: 'Email verified successfully! You can now log in.' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({ message: 'Server error during email verification' });
+  }
+});
+
+// Resend verification email
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    // Check if email is already verified
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'Email is already verified' });
+    }
+
+    // Generate new verification token
+    const newVerificationToken = generateEmailVerificationToken();
+    user.emailVerificationToken = newVerificationToken;
+    await user.save();
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(user, newVerificationToken);
+
+    if (emailSent) {
+      res.json({ message: 'Verification email sent successfully' });
+    } else {
+      res.status(500).json({ message: 'Failed to send verification email. Please try again later.' });
+    }
+  } catch (error) {
+    console.error('Resend verification error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
