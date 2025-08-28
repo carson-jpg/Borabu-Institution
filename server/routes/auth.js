@@ -17,7 +17,7 @@ const createTransporter = () => {
 
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT || 587,
+      port: parseInt(process.env.EMAIL_PORT || '587'),
       secure: process.env.EMAIL_SECURE === 'true',
       auth: {
         user: process.env.EMAIL_USER,
@@ -193,30 +193,42 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Log login attempt for debugging
+    console.log('Login attempt:', { email, normalizedEmail: email.toLowerCase() });
+
     // Validation
     if (!email || !password) {
+      console.log('Login failed: Email or password missing');
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
     // Check if user exists - include password field for comparison and verification status
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    console.log('User found:', user ? { id: user._id, email: user.email, emailVerified: user.emailVerified, isActive: user.isActive } : 'not found');
+    
     if (!user) {
+      console.log('Login failed: User not found');
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Check if user is active
     if (!user.isActive) {
+      console.log('Login failed: Account deactivated');
       return res.status(400).json({ message: 'Account has been deactivated. Please contact administrator.' });
     }
 
     // Check if email is verified
     if (!user.emailVerified) {
+      console.log('Login failed: Email not verified');
       return res.status(400).json({ message: 'Email not verified. Please check your inbox for the verification email.' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
+    console.log('Password match:', isMatch);
+    
     if (!isMatch) {
+      console.log('Login failed: Password mismatch');
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
@@ -227,6 +239,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
+    console.log('Login successful for user:', user.email);
     res.json({
       message: 'Login successful',
       token,

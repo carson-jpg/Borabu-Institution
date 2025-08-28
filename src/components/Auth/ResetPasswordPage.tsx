@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Lock, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
 const ResetPasswordPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -14,28 +15,6 @@ const ResetPasswordPage: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [tokenValid, setTokenValid] = useState(true);
-
-  useEffect(() => {
-    // Verify token validity when component mounts
-    const verifyToken = async () => {
-      if (!token) {
-        setTokenValid(false);
-        setError('Invalid reset token');
-        return;
-      }
-
-      try {
-        await authAPI.verifyResetToken(token);
-        setTokenValid(true);
-      } catch (error: any) {
-        setTokenValid(false);
-        setError(error.message || 'Invalid or expired reset token');
-      }
-    };
-
-    verifyToken();
-  }, [token]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -51,21 +30,21 @@ const ResetPasswordPage: React.FC = () => {
     setError('');
     setIsLoading(true);
 
-    if (!token) {
-      setError('Invalid reset token');
+    // Validation
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (!token) {
+      setError('Invalid reset token');
       setIsLoading(false);
       return;
     }
@@ -74,54 +53,43 @@ const ResetPasswordPage: React.FC = () => {
       await authAPI.resetPassword(token, formData.password);
       setSuccess('Password reset successfully! You can now log in with your new password.');
       
+      // Clear form
+      setFormData({
+        password: '',
+        confirmPassword: ''
+      });
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/');
       }, 3000);
+
     } catch (error: any) {
-      setError(error.message || 'Failed to reset password. Please try again.');
+      setError(error.message || 'Failed to reset password. The token may have expired or is invalid.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!tokenValid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Invalid Reset Link
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              {error || 'This password reset link is invalid or has expired.'}
-            </p>
-            <button
-              onClick={() => navigate('/')}
-              className="mt-4 text-green-600 hover:text-green-500"
-            >
-              Return to login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
+              <Lock className="h-10 w-10 text-white" />
+            </div>
+          </div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white drop-shadow-lg">
             Reset Your Password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-100">
             Enter your new password below
           </p>
         </div>
         
         <form 
-          className="mt-8 space-y-6" 
+          className="mt-8 space-y-6 bg-white/95 backdrop-blur-sm p-8 rounded-xl shadow-2xl" 
           onSubmit={handleResetPassword}
         >
           <div className="space-y-4">
@@ -136,7 +104,7 @@ const ResetPasswordPage: React.FC = () => {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder="Enter new password"
+                  placeholder="Enter your new password"
                   value={formData.password}
                   onChange={handleInputChange}
                   className="pl-10 pr-12 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
@@ -166,7 +134,7 @@ const ResetPasswordPage: React.FC = () => {
                   name="confirmPassword"
                   type="password"
                   required
-                  placeholder="Confirm new password"
+                  placeholder="Confirm your new password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
@@ -205,7 +173,7 @@ const ResetPasswordPage: React.FC = () => {
               onClick={() => navigate('/')}
               className="text-green-600 hover:text-green-500 text-sm"
             >
-              Back to login
+              Back to Login
             </button>
           </div>
         </form>

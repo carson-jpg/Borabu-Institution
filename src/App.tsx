@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Auth/Login';
 import MainApp from './components/MainApp';
@@ -16,19 +16,17 @@ const AppContent: React.FC = () => {
     );
   }
 
-  return (
-    <Routes>
-      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-      <Route path="*" element={user ? <MainApp /> : <Login />} />
-    </Routes>
-  );
+  return user ? <MainApp /> : <Login />;
 };
 
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <Routes>
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="*" element={<AppContent />} />
+        </Routes>
       </AuthProvider>
     </Router>
   );

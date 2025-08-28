@@ -64,6 +64,12 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware
+/**
+ * @param {any} err
+ * @param {any} req
+ * @param {any} res
+ * @param {any} next
+ */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
