@@ -62,6 +62,17 @@ export const authAPI = {
       body: JSON.stringify({ email })
     });
   },
+  verifyResetToken: async (token: string) => {
+    return apiRequest(`/auth/reset-password/verify/${token}`, {
+      method: 'GET'
+    });
+  },
+  resetPassword: async (token: string, newPassword: string) => {
+    return apiRequest(`/auth/reset-password/${token}`, {
+      method: 'POST',
+      body: JSON.stringify({ password: newPassword })
+    });
+  },
   // ... other methods
 };
 
