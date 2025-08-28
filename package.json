@@ -8,7 +8,6 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build:server": "tsc -p ./tsconfig.server.json",
     "dev:server": "nodemon --exec ts-node server/server.js",
     "start:server": "node dist/server.js"
   },
