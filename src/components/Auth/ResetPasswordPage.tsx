@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, AlertCircle, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { authAPI } from '../../services/api';
-import axios from 'axios';
 
 const ResetPasswordPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -72,10 +71,7 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     try {
-      await axios.post(
-        `https://borabu-institution-8.onrender.com/api/auth/reset-password/${token}`,
-        { password: formData.password }
-      );
+      await authAPI.resetPassword(token, formData.password);
       setSuccess('Password reset successfully! You can now log in with your new password.');
       
       // Redirect to login after 3 seconds

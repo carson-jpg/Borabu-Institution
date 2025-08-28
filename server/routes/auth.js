@@ -326,6 +326,31 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
+// Verify Reset Token
+router.get('/reset-password/verify/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Hash the token to compare with stored hash
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    res.json({ message: 'Reset token is valid', valid: true });
+  } catch (error) {
+    console.error('Verify reset token error:', error);
+    res.status(500).json({ message: 'Server error during token verification' });
+  }
+});
+
 // Reset Password
 router.post('/reset-password/:token', async (req, res) => {
   try {
