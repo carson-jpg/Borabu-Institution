@@ -127,6 +127,8 @@ router.post('/register', async (req, res) => {
     if (!admissionNo || !departmentId) {
       return res.status(400).json({ message: 'Admission number and department are required for students' });
     }
+        // ✅ HASH password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // --- FIX: store HASHED verification token, send RAW in email ---
     const rawVerificationToken = generateEmailVerificationToken();
