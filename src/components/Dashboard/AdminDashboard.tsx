@@ -109,66 +109,66 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <div className="flex space-x-3">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2">
+          <button className="bg-green-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-green-700 transition-colors">
             Generate Report
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+          <button className="bg-blue-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-blue-700 transition-colors">
             Add User
           </button>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-lg shadow p-6">
+            <div key={index} className="bg-white rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center">
-                <div className={`p-3 rounded-md ${stat.color}`}>
-                  <Icon className="h-6 w-6 text-white" />
+                <div className={`p-2 md:p-3 rounded-md ${stat.color}`}>
+                  <Icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">{stat.value}</h3>
-                  <p className="text-sm text-gray-500">{stat.title}</p>
+                <div className="ml-3 md:ml-4">
+                  <h3 className="text-base md:text-lg font-medium text-gray-900">{stat.value}</h3>
+                  <p className="text-xs md:text-sm text-gray-500">{stat.title}</p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center">
+              <div className="mt-3 md:mt-4 flex items-center">
                 <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-sm font-medium text-green-600">{stat.change}</span>
-                <span className="text-sm text-gray-500 ml-1">from last month</span>
+                <span className="text-xs md:text-sm font-medium text-green-600">{stat.change}</span>
+                <span className="text-xs md:text-sm text-gray-500 ml-1">from last month</span>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Department Overview */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Department Overview</h3>
+          <div className="p-4 md:p-6 border-b border-gray-200">
+            <h3 className="text-base md:text-lg font-medium text-gray-900">Department Overview</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 md:p-6">
+            <div className="space-y-3 md:space-y-4">
               {departmentStats.length > 0 ? (
                 departmentStats.slice(0, 6).map((dept) => (
                   <div key={dept._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{dept.name}</h4>
-                      <p className="text-sm text-gray-500">{dept.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{dept.name}</h4>
+                      <p className="text-xs md:text-sm text-gray-500 truncate">{dept.description}</p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">{dept.studentCount} students</div>
-                      <div className="text-sm text-gray-500">{dept.courseCount} courses</div>
+                    <div className="text-right ml-2">
+                      <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{dept.studentCount} students</div>
+                      <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{dept.courseCount} courses</div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No departments available.</p>
+                <p className="text-gray-500 text-sm md:text-base">No departments available.</p>
               )}
             </div>
           </div>
@@ -176,11 +176,11 @@ const AdminDashboard: React.FC = () => {
 
         {/* Recent Activities */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Activities</h3>
+          <div className="p-4 md:p-6 border-b border-gray-200">
+            <h3 className="text-base md:text-lg font-medium text-gray-900">Recent Activities</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 md:p-6">
+            <div className="space-y-3 md:space-y-4">
               {recentActivities.map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-3">
                   <div className={`p-1 rounded-full ${
@@ -193,9 +193,9 @@ const AdminDashboard: React.FC = () => {
                     {activity.type === 'payment' && <AlertTriangle className="h-4 w-4 text-yellow-600" />}
                     {activity.type === 'announcement' && <Users className="h-4 w-4 text-purple-600" />}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-500">by {activity.user}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{activity.action}</p>
+                    <p className="text-xs md:text-sm text-gray-500 truncate">by {activity.user}</p>
                     <p className="text-xs text-gray-400">{activity.time}</p>
                   </div>
                 </div>
@@ -206,36 +206,36 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
-            <Building className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">Add Department</span>
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            <Building className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
+            <span className="text-xs md:text-sm font-medium text-gray-700">Add Department</span>
           </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
-            <BookOpen className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">Create Course</span>
+          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
+            <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
+            <span className="text-xs md:text-sm font-medium text-gray-700">Create Course</span>
           </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
-            <Users className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">Manage Users</span>
+          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+            <Users className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
+            <span className="text-xs md:text-sm font-medium text-gray-700">Manage Users</span>
           </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors">
-            <FileText className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm font-medium text-gray-700">Upload Transcript</span>
+          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors">
+            <FileText className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
+            <span className="text-xs md:text-sm font-medium text-gray-700">Upload Transcript</span>
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Fee Management</h3>
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Fee Management</h3>
         <FeeManagement />
       </div>
 
       {/* Transcript Upload Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Transcript Management</h3>
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Transcript Management</h3>
         <TranscriptUpload />
       </div>
     </div>

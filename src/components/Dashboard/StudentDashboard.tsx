@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, BarChart, Calendar, CreditCard, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { BookOpen, BarChart, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { studentsAPI, coursesAPI, gradesAPI, announcementsAPI } from '../../services/api';
 
@@ -119,38 +119,38 @@ const StudentDashboard: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
-                    <p className="text-gray-600">Admission No: {studentData?.admissionNo}</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
+                    <p className="text-sm md:text-base text-gray-600">Admission No: {studentData?.admissionNo}</p>
                 </div>
-            <div className="flex space-x-3">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                View Timetable
-              </button>
-              <CourseRegistration studentId={studentData ? studentData._id : ''} />
-              <button 
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                onClick={() => window.location.href = '#transcript'}
-              >
-                Download Transcript
-              </button>
-            </div>
+                <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2">
+                  <button className="bg-blue-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-blue-700 transition-colors">
+                    View Timetable
+                  </button>
+                  <CourseRegistration studentId={studentData ? studentData._id : ''} />
+                  <button 
+                    className="bg-green-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-green-700 transition-colors"
+                    onClick={() => window.location.href = '#transcript'}
+                  >
+                    Download Transcript
+                  </button>
+                </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
-                        <div key={index} className="bg-white rounded-lg shadow p-6">
+                        <div key={index} className="bg-white rounded-lg shadow p-4 md:p-6">
                             <div className="flex items-center">
-                                <div className={`p-3 rounded-md ${stat.color}`}>
-                                    <Icon className="h-6 w-6 text-white" />
+                                <div className={`p-2 md:p-3 rounded-md ${stat.color}`}>
+                                    <Icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
                                 </div>
-                                <div className="ml-4">
-                                    <h3 className="text-lg font-medium text-gray-900">{stat.value}</h3>
-                                    <p className="text-sm text-gray-500">{stat.title}</p>
+                                <div className="ml-3 md:ml-4">
+                                    <h3 className="text-base md:text-lg font-medium text-gray-900">{stat.value}</h3>
+                                    <p className="text-xs md:text-sm text-gray-500">{stat.title}</p>
                                 </div>
                             </div>
                         </div>
@@ -172,23 +172,23 @@ const StudentDashboard: React.FC = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {/* Today's Schedule */}
                 <div className="bg-white rounded-lg shadow">
-                    <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-lg font-medium text-gray-900">Today's Schedule</h3>
+                    <div className="p-4 md:p-6 border-b border-gray-200">
+                        <h3 className="text-base md:text-lg font-medium text-gray-900">Today's Schedule</h3>
                     </div>
-                    <div className="p-6">
-                        <div className="space-y-4">
+                    <div className="p-4 md:p-6">
+                        <div className="space-y-3 md:space-y-4">
                             {upcomingClasses.map((class_) => (
-                                <div key={class_.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div>
-                                        <h4 className="font-medium text-gray-900">{class_.course}</h4>
-                                        <p className="text-sm text-gray-500">{class_.type} • Room {class_.room}</p>
+                                <div key={class_.id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{class_.course}</h4>
+                                        <p className="text-xs md:text-sm text-gray-500 truncate">{class_.type} • Room {class_.room}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-medium text-gray-900">{class_.time}</div>
-                                        <div className="text-xs text-green-600">On Time</div>
+                                    <div className="text-right ml-2">
+                                        <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{class_.time}</div>
+                                        <div className="text-xs text-green-600 whitespace-nowrap">On Time</div>
                                     </div>
                                 </div>
                             ))}
@@ -198,21 +198,21 @@ const StudentDashboard: React.FC = () => {
 
                 {/* Recent Grades */}
                 <div className="bg-white rounded-lg shadow">
-                    <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-lg font-medium text-gray-900">Recent Grades</h3>
+                    <div className="p-4 md:p-6 border-b border-gray-200">
+                        <h3 className="text-base md:text-lg font-medium text-gray-900">Recent Grades</h3>
                     </div>
-                    <div className="p-6">
-                        <div className="space-y-4">
+                    <div className="p-4 md:p-6">
+                        <div className="space-y-3 md:space-y-4">
                             {studentGrades.map((grade) => {
                                 const course = studentCourses.find(c => c._id === grade.courseId._id);
                                 return (
-                                    <div key={grade._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <h4 className="font-medium text-gray-900">{grade.courseId.name}</h4>
-                                            <p className="text-sm text-gray-500">Semester {grade.semester}, {grade.year}</p>
+                                    <div key={grade._id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.courseId.name}</h4>
+                                            <p className="text-xs md:text-sm text-gray-500">Semester {grade.semester}, {grade.year}</p>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-bold text-green-600">{grade.grade}</div>
+                                        <div className="text-right ml-2">
+                                            <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
                                         </div>
                                     </div>
                                 );
@@ -224,23 +224,23 @@ const StudentDashboard: React.FC = () => {
 
             {/* My Courses */}
             <div className="bg-white rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">My Courses</h3>
+                <div className="p-4 md:p-6 border-b border-gray-200">
+                    <h3 className="text-base md:text-lg font-medium text-gray-900">My Courses</h3>
                 </div>
-                <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4 md:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                         {studentCourses.map((course) => (
-                            <div key={course._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div key={course._id} className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-medium text-gray-900">{course.name}</h4>
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{course.name}</h4>
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
                                         {course.level}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-500 mb-2">Code: {course.code}</p>
-                                <p className="text-sm text-gray-500">{course.credits} Credits</p>
-                                <div className="mt-4 flex space-x-2">
-                                    <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-3 rounded text-sm hover:bg-blue-200 transition-colors">
+                                <p className="text-xs md:text-sm text-gray-500 mb-2 truncate">Code: {course.code}</p>
+                                <p className="text-xs md:text-sm text-gray-500">{course.credits} Credits</p>
+                                <div className="mt-3 md:mt-4 flex space-x-2">
+                                    <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-2 md:px-3 rounded text-xs md:text-sm hover:bg-blue-200 transition-colors">
                                         View
                                     </button>
                                 </div>
@@ -252,15 +252,15 @@ const StudentDashboard: React.FC = () => {
 
             {/* Recent Announcements */}
             <div className="bg-white rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">Recent Announcements</h3>
+                <div className="p-4 md:p-6 border-b border-gray-200">
+                    <h3 className="text-base md:text-lg font-medium text-gray-900">Recent Announcements</h3>
                 </div>
-                <div className="p-6">
-                    <div className="space-y-4">
+                <div className="p-4 md:p-6">
+                    <div className="space-y-3 md:space-y-4">
                         {recentAnnouncements.map((announcement) => (
-                            <div key={announcement._id} className="p-4 bg-blue-50 rounded-lg">
-                                <h4 className="font-medium text-gray-900">{announcement.title}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{announcement.content}</p>
+                            <div key={announcement._id} className="p-3 md:p-4 bg-blue-50 rounded-lg">
+                                <h4 className="text-sm md:text-base font-medium text-gray-900">{announcement.title}</h4>
+                                <p className="text-xs md:text-sm text-gray-600 mt-1 line-clamp-2">{announcement.content}</p>
                                 <p className="text-xs text-gray-500 mt-2">{new Date(announcement.createdAt).toLocaleDateString()}</p>
                             </div>
                         ))}

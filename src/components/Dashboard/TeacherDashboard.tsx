@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Users, Calendar, BarChart, Clock, CheckCircle, Building } from 'lucide-react';
+import { BookOpen, Users, Clock, CheckCircle, Building } from 'lucide-react';
 import { coursesAPI, studentsAPI, gradesAPI, attendanceAPI, departmentsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -160,23 +160,23 @@ const TeacherDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name}</h1>
-          <p className="text-gray-600">Here's what's happening in your classes today.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Welcome, {user?.name}</h1>
+          <p className="text-sm md:text-base text-gray-600">Here's what's happening in your classes today.</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2">
           <button 
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-blue-700 transition-colors"
             onClick={() => window.location.href = '#attendance'}
           >
             Take Attendance
           </button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+          <button className="bg-green-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-green-700 transition-colors">
             Grade Assignment
           </button>
           <button 
-            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+            className="bg-purple-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-purple-700 transition-colors"
             onClick={() => window.location.href = '#results'}
           >
             View Results
@@ -185,9 +185,9 @@ const TeacherDashboard: React.FC = () => {
       </div>
 
       {/* Department Filter */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center space-x-4">
-          <Building className="h-6 w-6 text-gray-600" />
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
+        <div className="flex flex-col xs:flex-row xs:items-center space-y-3 xs:space-y-0 xs:space-x-4">
+          <Building className="h-5 w-5 md:h-6 md:w-6 text-gray-600" />
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filter by Department
@@ -195,7 +195,7 @@ const TeacherDashboard: React.FC = () => {
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
             >
               <option value="">All Departments</option>
               {departments.map((department) => (
@@ -209,18 +209,18 @@ const TeacherDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-lg shadow p-6">
+            <div key={index} className="bg-white rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center">
-                <div className={`p-3 rounded-md ${stat.color}`}>
-                  <Icon className="h-6 w-6 text-white" />
+                <div className={`p-2 md:p-3 rounded-md ${stat.color}`}>
+                  <Icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">{stat.value}</h3>
-                  <p className="text-sm text-gray-500">{stat.title}</p>
+                <div className="ml-3 md:ml-4">
+                  <h3 className="text-base md:text-lg font-medium text-gray-900">{stat.value}</h3>
+                  <p className="text-xs md:text-sm text-gray-500">{stat.title}</p>
                 </div>
               </div>
             </div>
@@ -228,23 +228,23 @@ const TeacherDashboard: React.FC = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Today's Classes */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Today's Classes</h3>
+          <div className="p-4 md:p-6 border-b border-gray-200">
+            <h3 className="text-base md:text-lg font-medium text-gray-900">Today's Classes</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 md:p-6">
+            <div className="space-y-3 md:space-y-4">
               {upcomingClasses.map((class_) => (
-                <div key={class_._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{class_.course}</h4>
-                    <p className="text-sm text-gray-500">Room {class_.room}</p>
+                <div key={class_._id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{class_.course}</h4>
+                    <p className="text-xs md:text-sm text-gray-500 truncate">Room {class_.room}</p>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">{class_.time}</div>
-                    <div className="text-sm text-gray-500">{class_.students} students</div>
+                  <div className="text-right ml-2">
+                    <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{class_.time}</div>
+                    <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{class_.students} students</div>
                   </div>
                 </div>
               ))}
@@ -254,20 +254,20 @@ const TeacherDashboard: React.FC = () => {
 
         {/* Recent Grades */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Grades</h3>
+          <div className="p-4 md:p-6 border-b border-gray-200">
+            <h3 className="text-base md:text-lg font-medium text-gray-900">Recent Grades</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 md:p-6">
+            <div className="space-y-3 md:space-y-4">
             {recentGrades.map((grade, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">{grade.studentId.name}</h4>
-                  <p className="text-sm text-gray-500">{grade.courseId.name}</p>
+              <div key={index} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.studentId.name}</h4>
+                  <p className="text-xs md:text-sm text-gray-500 truncate">{grade.courseId.name}</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-green-600">{grade.grade}</div>
-                  <div className="text-sm text-gray-500">{new Date(grade.createdAt).toLocaleDateString()}</div>
+                <div className="text-right ml-2">
+                  <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
+                  <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{new Date(grade.createdAt).toLocaleDateString()}</div>
                 </div>
               </div>
             ))}
@@ -278,23 +278,23 @@ const TeacherDashboard: React.FC = () => {
 
       {/* My Courses */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">My Courses</h3>
+        <div className="p-4 md:p-6 border-b border-gray-200">
+          <h3 className="text-base md:text-lg font-medium text-gray-900">My Courses</h3>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {teacherCourses.map((course) => (
-              <div key={course._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={course._id} className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">{course.name}</h4>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{course.name}</h4>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
                     {course.level}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mb-2">Course Code: {course.code}</p>
-                <p className="text-sm text-gray-500">{course.credits} Credits</p>
-                <div className="mt-4 flex space-x-2">
-                  <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-3 rounded text-sm hover:bg-blue-200 transition-colors">
+                <p className="text-xs md:text-sm text-gray-500 mb-2 truncate">Course Code: {course.code}</p>
+                <p className="text-xs md:text-sm text-gray-500">{course.credits} Credits</p>
+                <div className="mt-3 md:mt-4 flex space-x-2">
+                  <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-2 md:px-3 rounded text-xs md:text-sm hover:bg-blue-200 transition-colors">
                     View Details
                   </button>
                 </div>
