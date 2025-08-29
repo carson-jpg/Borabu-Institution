@@ -1,17 +1,21 @@
-# Login Issue Diagnosis and Fix Plan
+# Login Fix Plan
 
-## Steps to Complete:
+## Problem
+Account creation works but login fails with "invalid email or password" due to double password hashing.
 
-1. [ ] Test MongoDB connection
-2. [ ] Check if user accounts exist in database
-3. [ ] Update JWT_SECRET in .env file
-4. [ ] Test authentication endpoint with test script
-5. [ ] Run insertAdminTeachers script to ensure accounts exist
-6. [ ] Verify password hashing functionality
-7. [ ] Test login with admin credentials
+## Root Cause
+- Registration route manually hashes password before creating User instance
+- User model pre-save hook also hashes password
+- This causes double hashing, making login comparison fail
 
-## Current Status:
-- MongoDB URI: mongodb+srv://isavameshack:qFTlaIAqXNEp163h@cluster0.qirmxuk.mongodb.net/student_portal?retryWrites=true&w=majority&appName=Cluster0
-- JWT_SECRET: placeholder value (needs update)
-- Pre-registered accounts: admin@borabutti.ac.ke / Admin123!
-- API endpoint: https://borabu-institution-8.onrender.com/api
+## Steps to Fix
+1. [x] Edit server/routes/auth.js registration route to remove manual password hashing
+2. [ ] Test registration and login functionality
+3. [ ] Verify login works correctly
+
+## Files to Edit
+- server/routes/auth.js (registration route)
+
+## Current Status
+- Step 1 completed: Removed manual password hashing from registration route
+- Ready for testing

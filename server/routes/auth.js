@@ -126,16 +126,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Admission number and department are required for students' });
     }
 
-    // ✅ Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const rawVerificationToken = generateEmailVerificationToken();
     const verificationTokenHash = crypto.createHash('sha256').update(rawVerificationToken).digest('hex');
 
     const user = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      password: hashedPassword,   // ✅ FIXED
+      password: password,   // Let the User model pre-save hook handle hashing
       role,
       emailVerificationToken: verificationTokenHash,
       emailVerified: false
