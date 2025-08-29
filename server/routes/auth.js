@@ -96,12 +96,13 @@ const sendVerificationEmail = async (user, rawToken) => {
   );
 };
 
+const bcrypt = require('bcryptjs'); // <--- ADD THIS at the top
+
 // Register
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, admissionNo, departmentId } = req.body;
 
-    // Validation
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
@@ -110,70 +111,57 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    // Validate role - only allow student registration
     if (role !== 'student') {
       return res.status(400).json({
         message: 'Only student registration is allowed. Admin and teacher accounts are pre-registered by administrators.'
       });
     }
 
-    // For students, require admission number and department
     if (!admissionNo || !departmentId) {
       return res.status(400).json({ message: 'Admission number and department are required for students' });
     }
-        // ✅ HASH password before saving
+
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // --- FIX: store HASHED verification token, send RAW in email ---
     const rawVerificationToken = generateEmailVerificationToken();
     const verificationTokenHash = crypto.createHash('sha256').update(rawVerificationToken).digest('hex');
 
-    // Create new user with email verification (store HASH)
     const user = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      password,
+      password: hashedPassword,   // ✅ FIXED
       role,
-      emailVerificationToken: verificationTokenHash, // store HASH
+      emailVerificationToken: verificationTokenHash,
       emailVerified: false
     });
 
     await user.save();
 
-    // If user is a student, create student record
-    if (role === 'student') {
-      const Student = require('../models/Student');
-      const studentRecord = new Student({
-        userId: user._id,
-        admissionNo: admissionNo.toUpperCase(),
-        departmentId,
-        year: 1,
-        courses: [],
-        fees: []
-      });
-      await studentRecord.save();
-    }
+    // Create student record
+    const Student = require('../models/Student');
+    await new Student({
+      userId: user._id,
+      admissionNo: admissionNo.toUpperCase(),
+      departmentId,
+      year: 1,
+      courses: [],
+      fees: []
+    }).save();
 
-    // Send verification email with RAW token
-    const emailSent = await sendVerificationEmail(user, rawVerificationToken);
+    await sendVerificationEmail(user, rawVerificationToken);
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRE || '7d'
+    });
 
     res.status(201).json({
-      message: emailSent
-        ? 'Account created successfully. Please check your email to verify your account.'
-        : 'Account created successfully, but verification email could not be sent. Please contact support.',
+      message: 'Account created successfully. Please check your email to verify your account.',
       token,
       user: {
         id: user._id,
@@ -181,14 +169,10 @@ router.post('/register', async (req, res) => {
         email: user.email,
         role: user.role,
         emailVerified: user.emailVerified
-      },
-      requiresVerification: !emailSent
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email or admission number already exists' });
-    }
     res.status(500).json({ message: 'Server error during registration' });
   }
 });
