@@ -20,6 +20,7 @@ import TeacherResultsView from './Grades/TeacherResultsView';
 const MainApp: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -57,13 +58,35 @@ const MainApp: React.FC = () => {
     }
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Close sidebar on mobile when a tab is selected
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   return (
-<div className="h-screen flex flex-col background-image">
-      <Header />
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6">
+    <div className="h-screen flex flex-col background-image">
+      <Header 
+        isSidebarOpen={isSidebarOpen}
+        onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={handleTabChange}
+          isOpen={isSidebarOpen}
+        />
+        {/* Overlay for mobile sidebar */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        <main className="flex-1 overflow-y-auto md:ml-0 transition-all duration-300">
+          <div className="p-4 md:p-6">
             {renderContent()}
           </div>
         </main>

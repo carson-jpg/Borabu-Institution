@@ -16,9 +16,10 @@ import {
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  isOpen: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen }) => {
   const { user } = useAuth();
 
   const getMenuItems = () => {
@@ -60,7 +61,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menuItems = getMenuItems();
 
   return (
-    <div className="w-64 bg-white shadow-sm border-r h-full">
+    <div className={`
+      w-full md:w-64 bg-white shadow-sm border-r h-full overflow-y-auto fixed md:relative z-40 md:z-auto inset-y-0 left-0 
+      transform transition-transform duration-300 ease-in-out md:transform-none md:flex md:flex-col
+      ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+    `}>
       <nav className="mt-8">
         <div className="px-4">
           <ul className="space-y-2">
