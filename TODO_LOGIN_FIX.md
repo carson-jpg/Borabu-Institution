@@ -1,21 +1,30 @@
-# Login Fix Plan
+# Additional Steps for Login Fix
 
-## Problem
-Account creation works but login fails with "invalid email or password" due to double password hashing.
+## Resetting Existing User Passwords
 
-## Root Cause
-- Registration route manually hashes password before creating User instance
-- User model pre-save hook also hashes password
-- This causes double hashing, making login comparison fail
+Since the server is deployed on Render and existing users may have double-hashed passwords, the following options are available:
 
-## Steps to Fix
-1. [x] Edit server/routes/auth.js registration route to remove manual password hashing
-2. [ ] Test registration and login functionality
-3. [ ] Verify login works correctly
+1. Use the script `server/scripts/fixDoubleHashedPasswords.js` to attempt fixing double-hashed passwords in the database.
+2. Alternatively, reset all user passwords to a default value using the same script.
 
-## Files to Edit
-- server/routes/auth.js (registration route)
+## Instructions to Run the Script
 
-## Current Status
-- Step 1 completed: Removed manual password hashing from registration route
-- Ready for testing
+- SSH or connect to your Render server environment.
+- Run the script with Node.js:
+  ```
+  node server/scripts/fixDoubleHashedPasswords.js
+  ```
+- The script currently runs the "fix double-hashed passwords" option by default.
+- To reset all passwords instead, uncomment the relevant line in the script.
+
+## Next Steps
+
+- After running the script, test login functionality again.
+- Inform users to reset their passwords if needed.
+
+## Assistance
+
+- I can help you modify or extend the script if needed.
+- I can help you with instructions for running the script on Render.
+
+Please let me know how you would like to proceed.
