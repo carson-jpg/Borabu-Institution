@@ -39,15 +39,12 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Admission number and department are required for students" });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     // Create user (skip email verification for now)
+    // Note: Password will be automatically hashed by the User model's pre-save hook
     const user = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      password: hashedPassword,
+      password: password, // Will be hashed by pre-save hook
       role,
       emailVerified: true // ✅ students can log in immediately
     });

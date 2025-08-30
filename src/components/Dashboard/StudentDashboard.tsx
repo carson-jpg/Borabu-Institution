@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, BarChart, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { studentsAPI, coursesAPI, gradesAPI, announcementsAPI } from '../../services/api';
+import { studentsAPI, coursesAPI, gradesAPI, announcementsAPI, attendanceAPI, timetablesAPI } from '../../services/api';
 
 import CourseRegistration from '../Courses/CourseRegistration';
+import TimetableView from '../Timetable/TimetableView';
 
 interface Student {
     _id: string;
@@ -12,6 +13,14 @@ interface Student {
     departmentId: string;
     courses: { _id: string; name: string; code: string; level: string; credits: number }[];
     fees: { amount: number; status: string; dueDate: Date; description: string; paidDate?: Date }[];
+    helbLoan: {
+        amount: number;
+        status: string;
+        applicationDate?: Date;
+        disbursementDate?: Date;
+        loanNumber?: string;
+    };
+    year: number;
 }
 
 const StudentDashboard: React.FC = () => {
@@ -21,6 +30,10 @@ const StudentDashboard: React.FC = () => {
     const [studentGrades, setStudentGrades] = useState<any[]>([]);
     const [announcements, setAnnouncements] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showTimetable, setShowTimetable] = useState(false);
+    const [currentGPA, setCurrentGPA] = useState<number>(0);
+    const [attendanceRate, setAttendanceRate] = useState<number>(0);
+    const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -41,6 +54,32 @@ const StudentDashboard: React.FC = () => {
             // Fetch grades
             const gradesData = await gradesAPI.getAll({ studentId: currentStudent._id });
             setStudentGrades(gradesData);
+
+            // Calculate GPA from grades
+            if (gradesData && gradesData.length > 0) {
+              const totalPoints = gradesData.reduce((sum: number, grade: any) => {
+                const gradePoint = grade.grade === 'A' ? 4 : grade.grade === 'B' ? 3 : grade.grade === 'C' ? 2 : grade.grade === 'D' ? 1 : 0;
+                return sum + gradePoint;
+              }, 0);
+              const gpa = totalPoints / gradesData.length;
+              setCurrentGPA(parseFloat(gpa.toFixed(2)));
+            }
+
+            // Fetch attendance data
+            const attendanceData = await attendanceAPI.getAll({ studentId: currentStudent._id });
+            if (attendanceData && attendanceData.length > 0) {
+              const presentCount = attendanceData.filter((record: any) => record.status === 'present').length;
+              const rate = (presentCount / attendanceData.length) * 100;
+              setAttendanceRate(Math.round(rate));
+            }
+
+            // Fetch today's timetable
+            const timetableData = await timetablesAPI.getStudentTimetable(currentStudent._id);
+            if (timetableData && timetableData.entries) {
+              const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+              const todayClasses = timetableData.entries.filter((entry: any) => entry.dayOfWeek === ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today]);
+              setUpcomingClasses(todayClasses.slice(0, 3)); // Show max 3 classes
+            }
           } catch (error: any) {
             if (error.message?.includes('Access denied')) {
               console.error('Access denied - user does not have permission to view this student data');
@@ -89,13 +128,13 @@ const StudentDashboard: React.FC = () => {
         },
         {
             title: 'Current GPA',
-            value: '3.7',
+            value: currentGPA > 0 ? currentGPA.toString() : 'N/A',
             icon: BarChart,
             color: 'bg-green-500'
         },
         {
             title: 'Attendance Rate',
-            value: '92%',
+            value: `${attendanceRate}%`,
             icon: Calendar,
             color: 'bg-purple-500'
         },
@@ -105,12 +144,6 @@ const StudentDashboard: React.FC = () => {
             icon: CreditCard,
             color: pendingFees > 0 ? 'bg-red-500' : 'bg-green-500'
         }
-    ];
-
-    const upcomingClasses = [
-        { id: 1, course: 'ICT Certificate', time: '09:00 AM', room: 'Lab 101', type: 'Lecture' },
-        { id: 2, course: 'Computer Programming', time: '02:00 PM', room: 'Lab 102', type: 'Practical' },
-        { id: 3, course: 'Graphic Design', time: '04:00 PM', room: 'Design Studio', type: 'Workshop' }
     ];
 
     const recentAnnouncements = announcements
@@ -123,9 +156,13 @@ const StudentDashboard: React.FC = () => {
                 <div>
                     <h1 className="text-xl md:text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
                     <p className="text-sm md:text-base text-gray-600">Admission No: {studentData?.admissionNo}</p>
+                    <p className="text-sm md:text-base text-gray-600">Year of Study: {studentData?.year}</p>
                 </div>
                 <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2">
-                  <button className="bg-blue-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-blue-700 transition-colors">
+                  <button
+                    onClick={() => setShowTimetable(true)}
+                    className="bg-blue-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-blue-700 transition-colors"
+                  >
                     View Timetable
                   </button>
                   <CourseRegistration studentId={studentData ? studentData._id : ''} />
@@ -172,6 +209,40 @@ const StudentDashboard: React.FC = () => {
                 </div>
             )}
 
+            {/* HELB Loan Information */}
+            <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">HELB Loan Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-800">Loan Amount</h4>
+                        <p className="text-xl font-bold text-blue-900">KES {(studentData?.helbLoan?.amount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-green-800">Loan Status</h4>
+                        <p className={`text-lg font-bold ${
+                            studentData?.helbLoan?.status === 'disbursed' ? 'text-green-900' :
+                            studentData?.helbLoan?.status === 'approved' ? 'text-blue-900' :
+                            studentData?.helbLoan?.status === 'pending' ? 'text-yellow-900' :
+                            'text-red-900'
+                        }`}>
+                            {studentData?.helbLoan?.status ? studentData.helbLoan.status.charAt(0).toUpperCase() + studentData.helbLoan.status.slice(1) : 'Not Applied'}
+                        </p>
+                    </div>
+                </div>
+                {studentData?.helbLoan?.loanNumber && (
+                    <div className="mt-4">
+                        <h4 className="text-sm font-medium text-gray-700">Loan Number</h4>
+                        <p className="text-sm text-gray-900">{studentData?.helbLoan?.loanNumber}</p>
+                    </div>
+                )}
+                {studentData?.helbLoan?.disbursementDate && (
+                    <div className="mt-2">
+                        <h4 className="text-sm font-medium text-gray-700">Disbursement Date</h4>
+                        <p className="text-sm text-gray-900">{new Date(studentData?.helbLoan?.disbursementDate || '').toLocaleDateString()}</p>
+                    </div>
+                )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {/* Today's Schedule */}
                 <div className="bg-white rounded-lg shadow">
@@ -203,20 +274,17 @@ const StudentDashboard: React.FC = () => {
                     </div>
                     <div className="p-4 md:p-6">
                         <div className="space-y-3 md:space-y-4">
-                            {studentGrades.map((grade) => {
-                                const course = studentCourses.find(c => c._id === grade.courseId._id);
-                                return (
-                                    <div key={grade._id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.courseId.name}</h4>
-                                            <p className="text-xs md:text-sm text-gray-500">Semester {grade.semester}, {grade.year}</p>
-                                        </div>
-                                        <div className="text-right ml-2">
-                                            <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
-                                        </div>
+                            {studentGrades.map((grade) => (
+                                <div key={grade._id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.courseId.name}</h4>
+                                        <p className="text-xs md:text-sm text-gray-500">Semester {grade.semester}, {grade.year}</p>
                                     </div>
-                                );
-                            })}
+                                    <div className="text-right ml-2">
+                                        <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -267,6 +335,13 @@ const StudentDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Timetable Modal */}
+            <TimetableView
+                studentId={studentData?._id || ''}
+                isOpen={showTimetable}
+                onClose={() => setShowTimetable(false)}
+            />
         </div>
     );
 };

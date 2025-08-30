@@ -89,6 +89,7 @@ router.get('/summary/:studentId', auth, async (req, res) => {
       pendingFees,
       overdueFees,
       balance: totalFees - paidFees,
+      helbLoan: student.helbLoan,
       fees: student.fees
     };
 
@@ -120,6 +121,44 @@ router.post('/payment', auth, authorize('admin'), async (req, res) => {
     await student.save();
 
     res.json({ message: 'Payment recorded successfully', fee });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Student payment endpoint (Students can pay their own fees)
+router.post('/student-payment', auth, async (req, res) => {
+  try {
+    const { feeId, amount, paymentMethod } = req.body;
+
+    // Find student by user ID
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const fee = student.fees.id(feeId);
+    if (!fee) {
+      return res.status(404).json({ message: 'Fee record not found' });
+    }
+
+    if (fee.status === 'paid') {
+      return res.status(400).json({ message: 'Fee is already paid' });
+    }
+
+    // For now, we'll mark as paid. In a real implementation, you'd integrate with a payment gateway
+    fee.status = 'paid';
+    fee.paidDate = new Date();
+
+    await student.save();
+
+    res.json({
+      message: 'Payment processed successfully',
+      fee,
+      paymentMethod,
+      amount: fee.amount
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

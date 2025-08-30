@@ -363,7 +363,7 @@ router.put('/:id/fees/:feeId', auth, authorize('admin'), async (req, res) => {
 
 router.post('/:id/courses', auth, async (req, res) => {
     try {
-        const { courseId } = req.body;
+        const { courseId, year } = req.body;
 
         const student = await Student.findById(req.params.id);
         if (!student) {
@@ -373,6 +373,11 @@ router.post('/:id/courses', auth, async (req, res) => {
         // Check if the course is already enrolled
         if (student.courses.includes(courseId)) {
             return res.status(400).json({ message: 'Course already enrolled' });
+        }
+
+        // Update year if provided
+        if (year && year >= 1 && year <= 4) {
+            student.year = year;
         }
 
         student.courses.push(courseId);

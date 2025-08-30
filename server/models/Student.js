@@ -51,6 +51,26 @@ const studentSchema = new mongoose.Schema({
     max: 4
   },
   fees: [feeRecordSchema],
+  helbLoan: {
+    amount: {
+      type: Number,
+      default: 0
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'disbursed', 'rejected'],
+      default: 'pending'
+    },
+    applicationDate: {
+      type: Date
+    },
+    disbursementDate: {
+      type: Date
+    },
+    loanNumber: {
+      type: String
+    }
+  },
   isActive: {
     type: Boolean,
     default: true

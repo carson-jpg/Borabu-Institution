@@ -192,6 +192,9 @@ export const feesAPI = {
     const queryString = params ? new URLSearchParams(params).toString() : '';
     return apiRequest(`/fees${queryString ? `?${queryString}` : ''}`);
   },
+  getSummary: async (studentId: string) => {
+    return apiRequest(`/fees/summary/${studentId}`);
+  },
   create: async (feeData: any) => {
     return apiRequest('/fees', {
       method: 'POST',
@@ -208,6 +211,37 @@ export const feesAPI = {
     return apiRequest(`/fees/${id}`, {
       method: 'DELETE'
     });
+  },
+  studentPayment: async (paymentData: any) => {
+    return apiRequest('/fees/student-payment', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  }
+};
+
+// Payments API
+export const paymentsAPI = {
+  initiateMpesaPayment: async (paymentData: any) => {
+    return apiRequest('/payments/mpesa/initiate', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  },
+  getPaymentStatus: async (paymentId: string) => {
+    return apiRequest(`/payments/status/${paymentId}`);
+  },
+  getPaymentHistory: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/payments/history${queryString ? `?${queryString}` : ''}`);
+  },
+  getAllPayments: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/payments${queryString ? `?${queryString}` : ''}`);
+  },
+  getPaymentStats: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/payments/stats${queryString ? `?${queryString}` : ''}`);
   }
 };
 
@@ -233,4 +267,34 @@ export const attendanceAPI = {
     const queryString = params ? new URLSearchParams(params).toString() : '';
     return apiRequest(`/attendance/upcoming${queryString ? `?${queryString}` : ''}`);
   },
+};
+
+// Timetables API
+export const timetablesAPI = {
+  getAll: async () => {
+    return apiRequest('/timetables');
+  },
+  getByDepartmentAndYear: async (departmentId: string, year: number) => {
+    return apiRequest(`/timetables/${departmentId}/${year}`);
+  },
+  getStudentTimetable: async (studentId: string) => {
+    return apiRequest(`/timetables/student/${studentId}`);
+  },
+  create: async (timetableData: any) => {
+    return apiRequest('/timetables', {
+      method: 'POST',
+      body: JSON.stringify(timetableData)
+    });
+  },
+  update: async (id: string, timetableData: any) => {
+    return apiRequest(`/timetables/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(timetableData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/timetables/${id}`, {
+      method: 'DELETE'
+    });
+  }
 };

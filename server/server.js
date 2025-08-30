@@ -33,7 +33,9 @@ app.use('/api/grades', require('./routes/grades'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/fees', require('./routes/fees'));
+app.use('/api/payments', require('./routes/payments'));
 app.use('/api/transcripts', require('./routes/transcripts'));
+app.use('/api/timetables', require('./routes/timetables'));
 
 // Connect to MongoDB with better error handling and retry options
 const mongoURI = process.env.MONGODB_URI;

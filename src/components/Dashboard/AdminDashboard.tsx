@@ -1,9 +1,10 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Users, BookOpen, GraduationCap, Building, TrendingUp, AlertTriangle, FileText } from 'lucide-react';
-import { departmentsAPI, coursesAPI, usersAPI, studentsAPI } from '../../services/api';
+import { Users, BookOpen, GraduationCap, Building, AlertTriangle, FileText } from 'lucide-react';
+import { departmentsAPI, coursesAPI, usersAPI, studentsAPI, paymentsAPI, announcementsAPI, gradesAPI } from '../../services/api';
 import TranscriptUpload from '../Transcripts/TranscriptUpload';
-import FeeManagement from '../Fees/FeeManagement'; // Add this line
+import FeeManagement from '../Fees/FeeManagement';
+import TimetableManagement from '../Timetable/TimetableManagement';
 
 // Define types for departments, courses, users, and students
 interface Department {
@@ -24,27 +25,101 @@ interface Student {
   departmentId: string;
 }
 
+interface RecentActivity {
+  id: string;
+  action: string;
+  user: string;
+  time: string;
+  type: 'enrollment' | 'grade' | 'payment' | 'announcement';
+}
+
 const AdminDashboard: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [deptData, courseData, userData, studentData] = await Promise.all([
+        const [deptData, courseData, userData, studentData, paymentData, announcementData, gradeData] = await Promise.all([
           departmentsAPI.getAll(),
           coursesAPI.getAll(),
           usersAPI.getAll(),
-          studentsAPI.getAll()
+          studentsAPI.getAll(),
+          paymentsAPI.getAllPayments({ limit: 5, sort: '-createdAt' }).catch(() => ({ payments: [] })),
+          announcementsAPI.getAll({ limit: 5, sort: '-createdAt' }).catch(() => []),
+          gradesAPI.getAll({ limit: 5, sort: '-createdAt' }).catch(() => [])
         ]);
-        
+
         setDepartments(deptData);
         setCourses(courseData);
         setUsers(userData);
         setStudents(studentData);
+
+        // Create recent activities from real data
+        const activities: RecentActivity[] = [];
+
+        // Add recent payments
+        if (paymentData.payments) {
+          paymentData.payments.slice(0, 2).forEach((payment: any) => {
+            activities.push({
+              id: `payment-${payment._id}`,
+              action: `Fee payment received - KES ${payment.amount}`,
+              user: payment.student?.name || 'Unknown Student',
+              time: formatTimeAgo(new Date(payment.createdAt)),
+              type: 'payment'
+            });
+          });
+        }
+
+        // Add recent enrollments
+        studentData.slice(-2).forEach((student: any) => {
+          activities.push({
+            id: `enrollment-${student._id}`,
+            action: 'New student enrollment',
+            user: student.name,
+            time: formatTimeAgo(new Date(student.createdAt || Date.now())),
+            type: 'enrollment'
+          });
+        });
+
+        // Add recent grades
+        if (Array.isArray(gradeData)) {
+          gradeData.slice(0, 2).forEach((grade: any) => {
+            activities.push({
+              id: `grade-${grade._id}`,
+              action: 'Course grade updated',
+              user: grade.student?.name || 'Unknown Student',
+              time: formatTimeAgo(new Date(grade.createdAt || Date.now())),
+              type: 'grade'
+            });
+          });
+        }
+
+        // Add recent announcements
+        if (Array.isArray(announcementData)) {
+          announcementData.slice(0, 2).forEach((announcement: any) => {
+            activities.push({
+              id: `announcement-${announcement._id}`,
+              action: 'New announcement posted',
+              user: announcement.author?.name || 'Admin',
+              time: formatTimeAgo(new Date(announcement.createdAt || Date.now())),
+              type: 'announcement'
+            });
+          });
+        }
+
+        // Sort activities by time (most recent first)
+        activities.sort((a, b) => {
+          const timeA = parseTimeAgo(a.time);
+          const timeB = parseTimeAgo(b.time);
+          return timeA - timeB;
+        });
+
+        setRecentActivities(activities.slice(0, 6)); // Keep only 6 most recent
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -54,6 +129,27 @@ const AdminDashboard: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Helper function to format time ago
+  const formatTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Helper function to parse time ago for sorting
+  const parseTimeAgo = (timeAgo: string): number => {
+    if (timeAgo === 'Just now') return 0;
+    if (timeAgo.includes('hours ago')) return parseInt(timeAgo) * 60 * 60 * 1000;
+    if (timeAgo.includes('days ago')) return parseInt(timeAgo) * 24 * 60 * 60 * 1000;
+    return Date.now(); // Default to now for other formats
+  };
 
   if (loading) {
     return (
@@ -68,38 +164,29 @@ const AdminDashboard: React.FC = () => {
       title: 'Total Students',
       value: students.length.toString(),
       icon: GraduationCap,
-      color: 'bg-blue-500',
-      change: '+12%'
+      color: 'bg-blue-500'
     },
     {
       title: 'Total Courses',
       value: courses.length.toString(),
       icon: BookOpen,
-      color: 'bg-green-500',
-      change: '+3%'
+      color: 'bg-green-500'
     },
     {
       title: 'Departments',
       value: departments.length.toString(),
       icon: Building,
-      color: 'bg-purple-500',
-      change: '0%'
+      color: 'bg-purple-500'
     },
     {
       title: 'Staff Members',
       value: users.filter(u => u.role === 'teacher').length.toString(),
       icon: Users,
-      color: 'bg-orange-500',
-      change: '+8%'
+      color: 'bg-orange-500'
     }
   ];
 
-  const recentActivities = [
-    { id: 1, action: 'New student enrollment', user: 'John Doe', time: '2 hours ago', type: 'enrollment' },
-    { id: 2, action: 'Course grade updated', user: 'Dr. Sarah Kimani', time: '4 hours ago', type: 'grade' },
-    { id: 3, action: 'Fee payment received', user: 'Jane Smith', time: '6 hours ago', type: 'payment' },
-    { id: 4, action: 'New announcement posted', user: 'Admin User', time: '1 day ago', type: 'announcement' }
-  ];
+
 
   const departmentStats = departments.map(dept => ({
     ...dept,
@@ -136,11 +223,7 @@ const AdminDashboard: React.FC = () => {
                   <p className="text-xs md:text-sm text-gray-500">{stat.title}</p>
                 </div>
               </div>
-              <div className="mt-3 md:mt-4 flex items-center">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-xs md:text-sm font-medium text-green-600">{stat.change}</span>
-                <span className="text-xs md:text-sm text-gray-500 ml-1">from last month</span>
-              </div>
+
             </div>
           );
         })}
@@ -237,6 +320,12 @@ const AdminDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-4 md:p-6">
         <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Transcript Management</h3>
         <TranscriptUpload />
+      </div>
+
+      {/* Timetable Management Section */}
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Timetable Management</h3>
+        <TimetableManagement />
       </div>
     </div>
   );
