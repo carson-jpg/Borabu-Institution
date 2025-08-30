@@ -4,7 +4,7 @@ const Timetable = require('../models/Timetable');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Department = require('../models/Department');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
 // Get all timetables (Admin only)
