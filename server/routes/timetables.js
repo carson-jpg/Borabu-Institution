@@ -8,7 +8,7 @@ const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
 // Get all timetables (Admin only)
-router.get('/', auth, checkRole('admin'), async (req, res) => {
+router.get('/', auth, checkRole(['admin']), async (req, res) => {
   try {
     const timetables = await Timetable.find()
       .populate('departmentId', 'name')
@@ -98,7 +98,7 @@ router.get('/student/:studentId', auth, async (req, res) => {
 });
 
 // Create new timetable (Admin only)
-router.post('/', auth, checkRole('admin'), async (req, res) => {
+router.post('/', auth, checkRole(['admin']), async (req, res) => {
   try {
     const { departmentId, year, entries, academicYear } = req.body;
 
@@ -167,7 +167,7 @@ router.post('/', auth, checkRole('admin'), async (req, res) => {
 });
 
 // Update timetable (Admin only)
-router.put('/:id', auth, checkRole('admin'), async (req, res) => {
+router.put('/:id', auth, checkRole(['admin']), async (req, res) => {
   try {
     const { entries, isActive } = req.body;
 
@@ -220,7 +220,7 @@ router.put('/:id', auth, checkRole('admin'), async (req, res) => {
 });
 
 // Delete timetable (Admin only)
-router.delete('/:id', auth, checkRole('admin'), async (req, res) => {
+router.delete('/:id', auth, checkRole(['admin']), async (req, res) => {
   try {
     const timetable = await Timetable.findById(req.params.id);
     if (!timetable) {
