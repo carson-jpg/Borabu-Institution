@@ -277,11 +277,11 @@ const StudentDashboard: React.FC = () => {
                             {studentGrades.map((grade) => (
                                 <div key={grade._id} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.courseId.name}</h4>
-                                        <p className="text-xs md:text-sm text-gray-500">Semester {grade.semester}, {grade.year}</p>
+                                        <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.courseId?.name || 'Unknown Course'}</h4>
+                                        <p className="text-xs md:text-sm text-gray-500">Semester {grade.semester || 'N/A'}, {grade.year || 'N/A'}</p>
                                     </div>
                                     <div className="text-right ml-2">
-                                        <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
+                                        <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade || 'N/A'}</div>
                                     </div>
                                 </div>
                             ))}
