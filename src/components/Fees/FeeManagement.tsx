@@ -40,11 +40,22 @@ const FeeManagement: React.FC = () => {
     const fetchFeeRecords = async () => {
       try {
         if (user?.role === 'student') {
-          // For students, fetch their specific fee summary
-          const studentData = await feesAPI.getSummary(user.id);
-          setStudentFeeSummary(studentData);
-          // Also fetch their fee records
-          const data = await feesAPI.getAll({ studentId: user.id });
+          // For students, first get student data to get the correct student ID
+          const { studentsAPI } = await import('../../services/api');
+          const studentData = await studentsAPI.getByUserId(user.id);
+
+          if (!studentData) {
+            setError('Student record not found');
+            setLoading(false);
+            return;
+          }
+
+          // Now fetch fee summary using the correct student ID
+          const feeSummary = await feesAPI.getSummary(studentData._id);
+          setStudentFeeSummary(feeSummary);
+
+          // Also fetch their fee records using the correct student ID
+          const data = await feesAPI.getAll({ studentId: studentData._id });
           setFeeRecords(data);
         } else {
           // For admin, get all fee records
@@ -52,6 +63,7 @@ const FeeManagement: React.FC = () => {
           setFeeRecords(data);
         }
       } catch (err) {
+        console.error('Error fetching fee data:', err);
         setError('Failed to fetch fee data');
       } finally {
         setLoading(false);
@@ -101,10 +113,14 @@ const FeeManagement: React.FC = () => {
               });
               // Refresh data after successful payment
               if (user?.role === 'student') {
-                const studentData = await feesAPI.getSummary(user.id);
-                setStudentFeeSummary(studentData);
-                const data = await feesAPI.getAll({ studentId: user.id });
-                setFeeRecords(data);
+                const { studentsAPI } = await import('../../services/api');
+                const studentData = await studentsAPI.getByUserId(user.id);
+                if (studentData) {
+                  const feeSummary = await feesAPI.getSummary(studentData._id);
+                  setStudentFeeSummary(feeSummary);
+                  const data = await feesAPI.getAll({ studentId: studentData._id });
+                  setFeeRecords(data);
+                }
               }
             } else if (statusResult.status === 'failed') {
               setPaymentStatus({

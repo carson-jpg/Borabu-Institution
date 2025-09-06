@@ -80,7 +80,7 @@ const AdminDashboard: React.FC = () => {
           activities.push({
             id: `enrollment-${student._id}`,
             action: 'New student enrollment',
-            user: student.name,
+            user: student.userId?.name || student.name || 'Unknown Student',
             time: formatTimeAgo(new Date(student.createdAt || Date.now())),
             type: 'enrollment'
           });
@@ -192,7 +192,7 @@ const AdminDashboard: React.FC = () => {
     ...dept,
     studentCount: students.filter(s => s.departmentId === dept._id).length,
     courseCount: courses.filter(c => c.departmentId === dept._id).length
-  }));
+  })).filter(dept => dept !== null && dept !== undefined);
 
   return (
     <div className="space-y-6">
@@ -239,14 +239,14 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3 md:space-y-4">
               {departmentStats.length > 0 ? (
                 departmentStats.slice(0, 6).map((dept) => (
-                  <div key={dept._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={dept?._id || Math.random()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{dept.name}</h4>
-                      <p className="text-xs md:text-sm text-gray-500 truncate">{dept.description}</p>
+                      <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{dept?.name || 'Unknown Department'}</h4>
+                      <p className="text-xs md:text-sm text-gray-500 truncate">{dept?.description || 'No description'}</p>
                     </div>
                     <div className="text-right ml-2">
-                      <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{dept.studentCount} students</div>
-                      <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{dept.courseCount} courses</div>
+                      <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{dept?.studentCount || 0} students</div>
+                      <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{dept?.courseCount || 0} courses</div>
                     </div>
                   </div>
                 ))

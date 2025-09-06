@@ -262,12 +262,12 @@ const TeacherDashboard: React.FC = () => {
             {recentGrades.map((grade, index) => (
               <div key={index} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.studentId.name}</h4>
-                  <p className="text-xs md:text-sm text-gray-500 truncate">{grade.courseId.name}</p>
+                  <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{grade.studentId?.name || 'Unknown Student'}</h4>
+                  <p className="text-xs md:text-sm text-gray-500 truncate">{grade.courseId?.name || 'Unknown Course'}</p>
                 </div>
                 <div className="text-right ml-2">
-                  <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade}</div>
-                  <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{new Date(grade.createdAt).toLocaleDateString()}</div>
+                  <div className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">{grade.grade || 'N/A'}</div>
+                  <div className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{grade.createdAt ? new Date(grade.createdAt).toLocaleDateString() : 'Unknown Date'}</div>
                 </div>
               </div>
             ))}
