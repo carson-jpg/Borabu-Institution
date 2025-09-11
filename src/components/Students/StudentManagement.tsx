@@ -11,19 +11,22 @@ const StudentManagement: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError(null);
         const [studentsData, departmentsData] = await Promise.all([
           studentsAPI.getAll(),
           departmentsAPI.getAll()
         ]);
-        
+
         setStudents(studentsData);
         setDepartments(departmentsData);
       } catch (error) {
         console.error('Error fetching students data:', error);
+        setError('Failed to load student data. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -53,21 +56,42 @@ const StudentManagement: React.FC = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-semibold mb-2">Error</div>
+          <div className="text-gray-600">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusColor = (fees: any[]) => {
-    const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
-    const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
+    if (!fees || !Array.isArray(fees)) return 'bg-gray-100 text-gray-800';
+
+    const totalFees = fees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+    const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + (fee.amount || 0), 0);
     const balance = totalFees - paidFees;
-    
+
     if (balance === 0) return 'bg-green-100 text-green-800';
     if (balance > 0 && fees.some(f => f.status === 'overdue')) return 'bg-red-100 text-red-800';
     return 'bg-yellow-100 text-yellow-800';
   };
 
   const getStatusText = (fees: any[]) => {
-    const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
-    const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
+    if (!fees || !Array.isArray(fees)) return 'No Data';
+
+    const totalFees = fees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+    const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + (fee.amount || 0), 0);
     const balance = totalFees - paidFees;
-    
+
     if (balance === 0) return 'Paid Up';
     if (balance > 0 && fees.some(f => f.status === 'overdue')) return 'Overdue';
     return 'Pending';
@@ -224,10 +248,10 @@ const StudentManagement: React.FC = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {student.userId.name}
+                            {student.userId?.name || 'Unknown Student'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {student.userId.email}
+                            {student.userId?.email || 'No email'}
                           </div>
                         </div>
                       </div>
@@ -236,7 +260,7 @@ const StudentManagement: React.FC = () => {
                       {student.admissionNo}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {student.departmentId.name}
+                      {student.departmentId?.name || 'No Department'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
