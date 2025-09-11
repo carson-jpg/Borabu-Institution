@@ -76,6 +76,11 @@ const TimetableManagement: React.FC = () => {
       setDepartments(departmentsRes);
       setCourses(coursesRes);
       setTeachers(teachersRes);
+
+      // Set default departmentId if not set and departments exist
+      if (departmentsRes.length > 0 && !formData.departmentId) {
+        setFormData((prev) => ({ ...prev, departmentId: departmentsRes[0]._id }));
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
