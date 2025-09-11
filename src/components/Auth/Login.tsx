@@ -138,18 +138,20 @@ const Login: React.FC = () => {
               <GraduationCap className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white drop-shadow-lg">
-            Borabu Technical Training Institute
-          </h2>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-green-500 drop-shadow-lg">
+  Borabu Technical Training Institute
+</h2>
+
           <p className="mt-2 text-center text-sm text-gray-100">
             {mode === 'login' && 'Sign in to your account'}
             {mode === 'register' && 'Create your account'}
             {mode === 'forgot-password' && 'Reset your password'}
           </p>
           {mode === 'login' && (
-            <p className="mt-1 text-center text-xs text-gray-300">
-              Note: Admin and Teacher accounts are pre-registered. Contact administrator for access.
-            </p>
+          <p className="mt-1 text-center text-xs text-green-500">
+  Carson's Project
+</p>
+
           )}
         </div>
         

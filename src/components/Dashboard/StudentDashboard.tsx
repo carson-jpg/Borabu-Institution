@@ -46,8 +46,8 @@ const StudentDashboard: React.FC = () => {
             
             // Fetch enrolled courses
             const coursesData = await coursesAPI.getAll();
-            const enrolledCourses = coursesData.filter((c: { _id: string }) => 
-              currentStudent.courses.includes(c._id)
+            const enrolledCourses = coursesData.filter((c: { _id: string }) =>
+              c && c._id && currentStudent.courses && currentStudent.courses.includes(c._id)
             );
             setStudentCourses(enrolledCourses);
             
@@ -75,9 +75,11 @@ const StudentDashboard: React.FC = () => {
 
             // Fetch today's timetable
             const timetableData = await timetablesAPI.getStudentTimetable(currentStudent._id);
-            if (timetableData && timetableData.entries) {
+            if (timetableData && timetableData.entries && Array.isArray(timetableData.entries)) {
               const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-              const todayClasses = timetableData.entries.filter((entry: any) => entry.dayOfWeek === ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today]);
+              const todayClasses = timetableData.entries.filter((entry: any) =>
+                entry && entry.dayOfWeek === ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today]
+              );
               setUpcomingClasses(todayClasses.slice(0, 3)); // Show max 3 classes
             }
           } catch (error: any) {
@@ -147,7 +149,7 @@ const StudentDashboard: React.FC = () => {
     ];
 
     const recentAnnouncements = announcements
-        .filter(a => a.targetAudience.includes('student'))
+        .filter(a => a && a.targetAudience && a.targetAudience.includes('student'))
         .slice(0, 3);
 
     return (
