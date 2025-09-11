@@ -7,8 +7,8 @@ const Department = require('../models/Department');
 const { auth } = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
-// Get all timetables (Admin only)
-router.get('/', auth, checkRole(['admin']), async (req, res) => {
+// Get all timetables (Admin and Teachers)
+router.get('/', auth, checkRole(['admin', 'teacher']), async (req, res) => {
   try {
     const timetables = await Timetable.find()
       .populate('departmentId', 'name')

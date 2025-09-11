@@ -91,17 +91,19 @@ const TimetableView: React.FC<TimetableViewProps> = ({ studentId, isOpen, onClos
           const response = await timetablesAPI.getStudentTimetable(studentId);
           if (response && response.entries) {
             // Transform API response to match component interface
-            const transformedEntries: TimetableEntry[] = response.entries.map((entry: any) => ({
-              id: entry._id,
-              courseName: entry.courseId.name,
-              courseCode: entry.courseId.code,
-              day: entry.dayOfWeek,
-              startTime: entry.startTime,
-              endTime: entry.endTime,
-              room: entry.room,
-              teacher: entry.teacherId.name,
-              type: entry.type
-            }));
+            const transformedEntries: TimetableEntry[] = response.entries
+              .filter((entry: any) => entry.courseId && entry.teacherId) // Filter out entries with null courseId or teacherId
+              .map((entry: any) => ({
+                id: entry._id,
+                courseName: entry.courseId?.name || 'Unknown Course',
+                courseCode: entry.courseId?.code || 'N/A',
+                day: entry.dayOfWeek,
+                startTime: entry.startTime,
+                endTime: entry.endTime,
+                room: entry.room,
+                teacher: entry.teacherId?.name || 'Unknown Teacher',
+                type: entry.type
+              }));
             setTimetable(transformedEntries);
           } else {
             // If no timetable found, show empty state
