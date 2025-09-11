@@ -85,8 +85,8 @@ const TeacherDashboard: React.FC = () => {
         console.log('Fetching students...');
         const studentsData = await studentsAPI.getAll();
         console.log('Students data received:', studentsData);
-        const enrolledStudents = studentsData.filter((s: any) => 
-          s.courses.some((courseId: string) => coursesData.some((tc: any) => tc._id === courseId))
+        const enrolledStudents = studentsData.filter((s: any) =>
+          s.courses && s.courses.some((course: any) => coursesData.some((tc: any) => tc._id === course._id))
         );
         console.log('Enrolled students:', enrolledStudents);
         setTeacherStudents(enrolledStudents);
