@@ -70,6 +70,8 @@ const TimetableManagement: React.FC = () => {
         usersAPI.getAll({ role: 'teacher' })
       ]);
 
+      console.log('Departments fetched:', departmentsRes);
+
       setTimetables(timetablesRes);
       setDepartments(departmentsRes);
       setCourses(coursesRes);
