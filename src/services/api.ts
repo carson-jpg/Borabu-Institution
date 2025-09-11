@@ -24,13 +24,28 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || `API request failed with status ${response.status}`);
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `API request failed with status ${response.status}`);
+      }
+
+      return data;
+    } else {
+      // If not JSON, get the text response for debugging
+      const textResponse = await response.text();
+      console.error('Non-JSON response received:', textResponse.substring(0, 200));
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}: ${textResponse.substring(0, 100)}`);
+      }
+
+      throw new Error('Server returned non-JSON response');
     }
-
-    return data;
   } catch (error) {
     console.error('API Error:', error);
     throw error;

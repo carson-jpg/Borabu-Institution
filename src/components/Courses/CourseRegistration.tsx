@@ -43,17 +43,33 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
 
     const handleRegister = async () => {
         try {
+            // Validate inputs
+            if (!studentId) {
+                alert('Student ID is missing. Please refresh the page and try again.');
+                return;
+            }
+
+            if (!selectedCourse) {
+                alert('Please select a course to register.');
+                return;
+            }
+
+            if (!selectedYear) {
+                alert('Please select a year.');
+                return;
+            }
+
             // Use the studentsAPI to add course to student with year
-            console.log('Registering course with ID:', selectedCourse, 'Year:', selectedYear); // Log the selected course ID and year
+            console.log('Registering course with ID:', selectedCourse, 'Year:', selectedYear, 'Student ID:', studentId);
             const response = await studentsAPI.addCourse(studentId, { courseId: selectedCourse, year: parseInt(selectedYear) });
-            console.log('API Response:', response); // Log the response
+            console.log('API Response:', response);
             alert('Course registered successfully!');
             setSelectedCourse('');
             setSelectedYear('');
         } catch (error) {
             console.error('Error registering course:', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to register course: ${errorMessage}`); // Log the error message
+            alert(`Failed to register course: ${errorMessage}`);
         }
     };
 

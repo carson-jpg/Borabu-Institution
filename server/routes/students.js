@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Student = require('../models/Student');
 const User = require('../models/User');
 const Transcript = require('../models/Transcript');
@@ -365,6 +366,16 @@ router.post('/:id/courses', auth, async (req, res) => {
     try {
         const { courseId, year } = req.body;
 
+        // Validate required fields
+        if (!courseId) {
+            return res.status(400).json({ message: 'Course ID is required' });
+        }
+
+        // Validate student ID format
+        if (!req.params.id || !mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid student ID format' });
+        }
+
         const student = await Student.findById(req.params.id);
         if (!student) {
             return res.status(404).json({ message: 'Student not found' });
@@ -390,7 +401,7 @@ router.post('/:id/courses', auth, async (req, res) => {
 
         res.status(201).json(populatedStudent);
     } catch (error) {
-        console.error(error);
+        console.error('Error adding course to student:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
