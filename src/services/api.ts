@@ -8,19 +8,37 @@ const getAuthToken = () => {
 // Create headers with auth token
 const getAuthHeaders = () => {
   const token = getAuthToken();
-  return {
+  const headers = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` })
   };
+
+  // Debug logging
+  console.log('API Headers:', {
+    hasToken: !!token,
+    tokenLength: token ? token.length : 0,
+    authorizationHeader: headers.Authorization ? 'Present' : 'Missing'
+  });
+
+  return headers;
 };
 
 // Generic API request function
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
+  const authHeaders = getAuthHeaders();
   const config: RequestInit = {
-    headers: getAuthHeaders(),
+    headers: authHeaders,
     ...options
   };
+
+  // Debug logging for each request
+  console.log('API Request:', {
+    url,
+    method: config.method || 'GET',
+    hasAuthHeader: !!(config.headers as any)?.Authorization,
+    endpoint
+  });
 
   try {
     const response = await fetch(url, config);
