@@ -51,7 +51,7 @@ router.get('/:departmentId/:year', auth, async (req, res) => {
 });
 
 // Get student's timetable (based on student's department and year)
-router.get('/student/:studentId', auth, async (req, res) => {
+router.get('/student/:studentId', auth, checkRole(['admin', 'teacher']), async (req, res) => {
   try {
     const { studentId } = req.params;
 

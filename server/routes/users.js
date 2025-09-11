@@ -4,8 +4,8 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all users (Admin only)
-router.get('/', auth, authorize('admin'), async (req, res) => {
+// Get all users (Admin and Teachers)
+router.get('/', auth, authorize('admin', 'teacher'), async (req, res) => {
   try {
     const { role } = req.query;
     let filter = { isActive: true };
