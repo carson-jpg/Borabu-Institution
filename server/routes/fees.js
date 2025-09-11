@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Student = require('../models/Student');
 const { auth, authorize } = require('../middleware/auth');
 
@@ -57,6 +58,11 @@ router.get('/', auth, async (req, res) => {
 // Get fee summary for a student
 router.get('/summary/:studentId', auth, async (req, res) => {
   try {
+    // Validate student ID format
+    if (!req.params.studentId || !mongoose.Types.ObjectId.isValid(req.params.studentId)) {
+      return res.status(400).json({ message: 'Invalid student ID format' });
+    }
+
     const student = await Student.findById(req.params.studentId)
       .populate('userId', 'name email');
 
@@ -104,6 +110,16 @@ router.get('/summary/:studentId', auth, async (req, res) => {
 router.post('/payment', auth, authorize('admin'), async (req, res) => {
   try {
     const { studentId, feeId, amount, paymentDate } = req.body;
+
+    // Validate required fields
+    if (!studentId || !feeId) {
+      return res.status(400).json({ message: 'Student ID and Fee ID are required' });
+    }
+
+    // Validate student ID format
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ message: 'Invalid student ID format' });
+    }
 
     const student = await Student.findById(studentId);
     if (!student) {
@@ -168,6 +184,11 @@ router.post('/student-payment', auth, async (req, res) => {
 // Generate fee statement (Admin and Students)
 router.get('/statement/:studentId', auth, async (req, res) => {
   try {
+    // Validate student ID format
+    if (!req.params.studentId || !mongoose.Types.ObjectId.isValid(req.params.studentId)) {
+      return res.status(400).json({ message: 'Invalid student ID format' });
+    }
+
     const student = await Student.findById(req.params.studentId)
       .populate('userId', 'name email')
       .populate('departmentId', 'name');
