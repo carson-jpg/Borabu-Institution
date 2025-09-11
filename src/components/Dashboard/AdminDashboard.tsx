@@ -51,7 +51,8 @@ const AdminDashboard: React.FC = () => {
           studentsAPI.getAll(),
           paymentsAPI.getAllPayments({ limit: 5, sort: '-createdAt' }).catch(() => ({ payments: [] })),
           announcementsAPI.getAll({ limit: 5, sort: '-createdAt' }).catch(() => []),
-          gradesAPI.getAll({ limit: 5, sort: '-createdAt' }).catch(() => [])
+          gradesAPI.getAll({ limit: 5, sort: '-createdAt' }).catch(() => []),
+          Promise.resolve([]) // Placeholder for timetables - not used in current dashboard
         ]);
 
         setDepartments(deptData);
