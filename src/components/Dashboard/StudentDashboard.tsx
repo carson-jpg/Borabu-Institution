@@ -10,7 +10,7 @@ interface Student {
     _id: string;
     admissionNo: string;
     userId: { _id: string; name: string; email: string };
-    departmentId: string;
+    departmentId: { _id: string; name: string; description?: string } | string;
     courses: { _id: string; name: string; code: string; level: string; credits: number }[];
     fees: { amount: number; status: string; dueDate: Date; description: string; paidDate?: Date }[];
     helbLoan: {
@@ -159,6 +159,7 @@ const StudentDashboard: React.FC = () => {
                     <h1 className="text-xl md:text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
                     <p className="text-sm md:text-base text-gray-600">Admission No: {studentData?.admissionNo}</p>
                     <p className="text-sm md:text-base text-gray-600">Year of Study: {studentData?.year}</p>
+                    <p className="text-sm md:text-base text-gray-600">Department: {typeof studentData?.departmentId === 'object' && studentData.departmentId?.name ? studentData.departmentId.name : 'Not Assigned'}</p>
                 </div>
                 <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2">
                   <button
@@ -298,31 +299,62 @@ const StudentDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* My Courses */}
+            {/* Department Information */}
+            <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Department Information</h3>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h4 className="text-lg font-semibold text-blue-900">
+                                {typeof studentData?.departmentId === 'object' && studentData.departmentId?.name
+                                    ? studentData.departmentId.name
+                                    : 'Department Not Assigned'}
+                            </h4>
+                            {typeof studentData?.departmentId === 'object' && studentData.departmentId?.description && (
+                                <p className="text-sm text-blue-700 mt-1">{studentData.departmentId.description}</p>
+                            )}
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-blue-600">Year {studentData?.year || 'N/A'}</p>
+                            <p className="text-sm text-blue-600">Semester {studentData?.year ? (studentData.year * 2) - 1 : 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* My Enrolled Courses */}
             <div className="bg-white rounded-lg shadow">
                 <div className="p-4 md:p-6 border-b border-gray-200">
-                    <h3 className="text-base md:text-lg font-medium text-gray-900">My Courses</h3>
+                    <h3 className="text-base md:text-lg font-medium text-gray-900">My Enrolled Courses ({studentCourses.length})</h3>
+                    <p className="text-sm text-gray-600 mt-1">Courses you are currently enrolled in for this semester</p>
                 </div>
                 <div className="p-4 md:p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                        {studentCourses.map((course) => (
-                            <div key={course._id} className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{course.name}</h4>
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
-                                        {course.level}
-                                    </span>
+                    {studentCourses.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                            {studentCourses.map((course) => (
+                                <div key={course._id} className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{course.name}</h4>
+                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
+                                            {course.level}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs md:text-sm text-gray-500 mb-2 truncate">Code: {course.code}</p>
+                                    <p className="text-xs md:text-sm text-gray-500">{course.credits} Credits</p>
+                                    <div className="mt-3 md:mt-4 flex space-x-2">
+                                        <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-2 md:px-3 rounded text-xs md:text-sm hover:bg-blue-200 transition-colors">
+                                            View Details
+                                        </button>
+                                    </div>
                                 </div>
-                                <p className="text-xs md:text-sm text-gray-500 mb-2 truncate">Code: {course.code}</p>
-                                <p className="text-xs md:text-sm text-gray-500">{course.credits} Credits</p>
-                                <div className="mt-3 md:mt-4 flex space-x-2">
-                                    <button className="flex-1 bg-blue-100 text-blue-700 py-1 px-2 md:px-3 rounded text-xs md:text-sm hover:bg-blue-200 transition-colors">
-                                        View
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500 mb-4">No courses enrolled yet</p>
+                            <p className="text-sm text-gray-400">Use the Course Registration button above to enroll in courses</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
