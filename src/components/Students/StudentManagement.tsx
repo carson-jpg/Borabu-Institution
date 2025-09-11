@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Search, Filter, Plus, Edit, Trash2, GraduationCap } from 'lucide-react';
 import { studentsAPI, departmentsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const StudentManagement: React.FC = () => {
   const { user } = useAuth();
-  const [students, setStudents] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -34,11 +33,15 @@ const StudentManagement: React.FC = () => {
   }, []);
 
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.userId.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = !selectedDepartment || student.departmentId._id === selectedDepartment;
-    
+    const studentName = student.userId?.name || '';
+    const studentEmail = student.userId?.email || '';
+    const admissionNo = student.admissionNo || '';
+
+    const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         admissionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         studentEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = !selectedDepartment || student.departmentId?._id === selectedDepartment;
+
     return matchesSearch && matchesDepartment;
   });
 
@@ -50,7 +53,7 @@ const StudentManagement: React.FC = () => {
     );
   }
 
-  const getStatusColor = (fees: Student['fees']) => {
+  const getStatusColor = (fees: any[]) => {
     const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
     const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
     const balance = totalFees - paidFees;
@@ -60,7 +63,7 @@ const StudentManagement: React.FC = () => {
     return 'bg-yellow-100 text-yellow-800';
   };
 
-  const getStatusText = (fees: Student['fees']) => {
+  const getStatusText = (fees: any[]) => {
     const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
     const paidFees = fees.filter(f => f.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
     const balance = totalFees - paidFees;
