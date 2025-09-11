@@ -9,9 +9,10 @@ type Course = {
 
 type CourseRegistrationProps = {
     studentId: string;
+    onCourseRegistered?: () => void;
 };
 
-const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) => {
+const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId, onCourseRegistered }) => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<string>('');
@@ -44,18 +45,18 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
     const handleRegister = async () => {
         try {
             // Validate inputs
-            if (!studentId) {
+            if (!studentId || studentId.trim() === '') {
                 alert('Student ID is missing. Please refresh the page and try again.');
                 return;
             }
 
-            if (!selectedCourse) {
+            if (!selectedCourse || selectedCourse.trim() === '') {
                 alert('Please select a course to register.');
                 return;
             }
 
-            if (!selectedYear) {
-                alert('Please select a year.');
+            if (!selectedYear || selectedYear.trim() === '') {
+                alert('Please select a year for the course.');
                 return;
             }
 
@@ -66,9 +67,29 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
             alert('Course registered successfully!');
             setSelectedCourse('');
             setSelectedYear('');
+
+            // Call the callback if provided
+            if (onCourseRegistered) {
+                onCourseRegistered();
+            }
         } catch (error) {
             console.error('Error registering course:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let errorMessage = 'Unknown error occurred';
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+                // Provide more user-friendly error messages
+                if (error.message.includes('Invalid student ID format')) {
+                    errorMessage = 'Invalid student information. Please refresh the page and try again.';
+                } else if (error.message.includes('Student not found')) {
+                    errorMessage = 'Student profile not found. Please contact administrator.';
+                } else if (error.message.includes('Course already enrolled')) {
+                    errorMessage = 'You are already enrolled in this course.';
+                } else if (error.message.includes('Server error')) {
+                    errorMessage = 'Server error occurred. Please try again later.';
+                }
+            }
+
             alert(`Failed to register course: ${errorMessage}`);
         }
     };
@@ -85,8 +106,8 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
         <div className="bg-white p-4 rounded-lg shadow">
             <h2 className="text-lg font-medium text-gray-900 mb-3">Course Registration</h2>
             <div className="flex gap-2">
-                <select 
-                    onChange={(e) => setSelectedYear(e.target.value)} 
+                <select
+                    onChange={(e) => setSelectedYear(e.target.value)}
                     value={selectedYear}
                     className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -96,8 +117,8 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
                     <option value="3">3</option>
                     <option value="4">4</option>
                 </select>
-                <select 
-                    onChange={(e) => setSelectedCourse(e.target.value)} 
+                <select
+                    onChange={(e) => setSelectedCourse(e.target.value)}
                     value={selectedCourse}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -108,8 +129,8 @@ const CourseRegistration: React.FC<CourseRegistrationProps> = ({ studentId }) =>
                         </option>
                     ))}
                 </select>
-                <button 
-                    onClick={handleRegister} 
+                <button
+                    onClick={handleRegister}
                     disabled={!selectedCourse || !selectedYear}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >

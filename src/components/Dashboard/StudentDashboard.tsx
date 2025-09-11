@@ -43,7 +43,7 @@ const StudentDashboard: React.FC = () => {
             // Use the new API method to get student data by user ID
             const currentStudent = await studentsAPI.getByUserId(user.id);
             setStudentData(currentStudent);
-            
+
             // Fetch enrolled courses
             const coursesData = await coursesAPI.getAll();
             const enrolledCourses = coursesData.filter((c: { _id: string }) =>
@@ -109,6 +109,25 @@ const StudentDashboard: React.FC = () => {
     }
   }, [user]);
 
+  // Function to refresh student data (to be called after course registration)
+  const refreshStudentData = async () => {
+    if (user?.role === 'student') {
+      try {
+        const currentStudent = await studentsAPI.getByUserId(user.id);
+        setStudentData(currentStudent);
+
+        // Refresh enrolled courses
+        const coursesData = await coursesAPI.getAll();
+        const enrolledCourses = coursesData.filter((c: { _id: string }) =>
+          c && c._id && currentStudent.courses && currentStudent.courses.includes(c._id)
+        );
+        setStudentCourses(enrolledCourses);
+      } catch (error) {
+        console.error('Error refreshing student data:', error);
+      }
+    }
+  };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -169,7 +188,7 @@ const StudentDashboard: React.FC = () => {
                     View Timetable
                   </button>
                   {studentData && studentData._id ? (
-                    <CourseRegistration studentId={studentData._id} />
+                    <CourseRegistration studentId={studentData._id} onCourseRegistered={refreshStudentData} />
                   ) : (
                     <div className="bg-gray-100 text-gray-600 px-3 py-2 text-sm rounded-md">
                       Loading student data...
