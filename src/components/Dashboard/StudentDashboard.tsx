@@ -167,7 +167,13 @@ const StudentDashboard: React.FC = () => {
                   >
                     View Timetable
                   </button>
-                  <CourseRegistration studentId={studentData ? studentData._id : ''} />
+                  {studentData && studentData._id ? (
+                    <CourseRegistration studentId={studentData._id} />
+                  ) : (
+                    <div className="bg-gray-100 text-gray-600 px-3 py-2 text-sm rounded-md">
+                      Loading student data...
+                    </div>
+                  )}
                   <button 
                     className="bg-green-600 text-white px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md hover:bg-green-700 transition-colors"
                     onClick={() => window.location.href = '#transcript'}
