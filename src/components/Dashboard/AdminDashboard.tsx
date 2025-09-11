@@ -10,7 +10,7 @@ import TimetableManagement from '../Timetable/TimetableManagement';
 interface Department {
   _id: string;
   name: string;
-  description: string;
+  programs?: any[];
   studentCount: number;
   courseCount: number;
 }
@@ -190,8 +190,18 @@ const AdminDashboard: React.FC = () => {
 
   const departmentStats = departments.map(dept => ({
     ...dept,
-    studentCount: students.filter(s => s.departmentId === dept._id).length,
-    courseCount: courses.filter(c => c.departmentId === dept._id).length
+    studentCount: students.filter((s: any) => {
+      if (!s.departmentId) return false;
+      if (typeof s.departmentId === 'string') return s.departmentId === dept._id;
+      if (typeof s.departmentId === 'object' && s.departmentId._id) return s.departmentId._id === dept._id;
+      return false;
+    }).length,
+    courseCount: courses.filter((c: any) => {
+      if (!c.departmentId) return false;
+      if (typeof c.departmentId === 'string') return c.departmentId === dept._id;
+      if (typeof c.departmentId === 'object' && c.departmentId._id) return c.departmentId._id === dept._id;
+      return false;
+    }).length
   })).filter(dept => dept !== null && dept !== undefined);
 
   return (
@@ -242,7 +252,7 @@ const AdminDashboard: React.FC = () => {
                   <div key={dept?._id || Math.random()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">{dept?.name || 'Unknown Department'}</h4>
-                      <p className="text-xs md:text-sm text-gray-500 truncate">{dept?.description || 'No description'}</p>
+                      <p className="text-xs md:text-sm text-gray-500 truncate">{dept?.programs ? `${dept.programs.length} programs` : 'No programs'}</p>
                     </div>
                     <div className="text-right ml-2">
                       <div className="text-xs md:text-sm font-medium text-gray-900 whitespace-nowrap">{dept?.studentCount || 0} students</div>
