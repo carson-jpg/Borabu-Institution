@@ -31,23 +31,41 @@ router.get('/', auth, authorize('admin', 'teacher'), async (req, res) => {
 // Get student by user ID (for students to get their own data)
 router.get('/user/:userId', auth, async (req, res) => {
   try {
+    console.log('Getting student by user ID:', req.params.userId);
+    console.log('Authenticated user ID:', req.user._id);
+    console.log('Authenticated user role:', req.user.role);
+
     const student = await Student.findOne({ userId: req.params.userId })
       .populate('userId', 'name email')
       .populate('departmentId', 'name description')
       .populate('courses', 'name code level credits');
-    
+
     if (!student) {
+      console.log('Student not found for userId:', req.params.userId);
       return res.status(404).json({ message: 'Student not found' });
     }
 
+    console.log('Found student:', student._id);
+    console.log('Student userId:', student.userId);
+    console.log('Student userId._id:', student.userId._id);
+
     // Check if user is authorized to view this student
-    if (req.user.role === 'student' && student.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role === 'student') {
+      const studentUserId = student.userId._id ? student.userId._id.toString() : student.userId.toString();
+      const authUserId = req.user._id.toString();
+
+      console.log('Comparing student userId:', studentUserId);
+      console.log('Comparing auth userId:', authUserId);
+
+      if (studentUserId !== authUserId) {
+        console.log('Access denied: user IDs do not match');
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
-    
+
     res.json(student);
   } catch (error) {
-    console.error(error);
+    console.error('Error in /user/:userId route:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
