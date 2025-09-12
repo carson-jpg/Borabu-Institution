@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { studentsAPI } from '../../services/api';
 import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
@@ -12,7 +11,6 @@ interface UploadResult {
 }
 
 const TranscriptUpload: React.FC = () => {
-  const { user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -61,7 +59,7 @@ const TranscriptUpload: React.FC = () => {
 
     try {
       const result = await studentsAPI.uploadTranscript(formData);
-      setMessage(`Transcript uploaded successfully for ${result.studentName || result.admissionNo}`);
+      setMessage(`Transcript uploaded successfully for ${result.studentName && result.studentName.trim() !== '' ? result.studentName : result.admissionNo}`);
       setUploadResults([{
         fileName: selectedFiles[0].name,
         admissionNo: result.admissionNo,

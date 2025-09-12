@@ -174,8 +174,13 @@ router.post('/upload-transcript', auth, authorize('admin'), upload.single('trans
 
     await transcript.save();
 
+    // Populate student user info for response
+    const populatedStudent = await Student.findById(student._id).populate('userId', 'name');
+
     res.status(200).json({ 
       message: 'Transcript uploaded successfully', 
+      admissionNo: student.admissionNo,
+      studentName: (populatedStudent.userId && populatedStudent.userId.name) ? populatedStudent.userId.name : student.admissionNo,
       transcript 
     });
   } catch (error) {
@@ -244,10 +249,13 @@ router.post('/upload-transcripts', auth, authorize('admin'), upload.array('trans
 
         await transcript.save();
 
+        // Populate student user info for response
+        const populatedStudent = await Student.findById(student._id).populate('userId', 'name');
+
         results.push({
           fileName: file.originalname,
           admissionNo,
-          studentName: student.userId?.name,
+          studentName: (populatedStudent.userId && populatedStudent.userId.name) ? populatedStudent.userId.name : student.admissionNo,
           status: 'success',
           transcriptId: transcript._id
         });
