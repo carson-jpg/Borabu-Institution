@@ -380,6 +380,60 @@ export const attendanceAPI = {
   },
 };
 
+// Transcripts API
+export const transcriptsAPI = {
+  getByStudentId: async (studentId: string) => {
+    return apiRequest(`/transcripts/student/${studentId}`);
+  },
+  getByAdmissionNo: async (admissionNo: string) => {
+    return apiRequest(`/transcripts/admission/${admissionNo}`);
+  },
+  download: async (transcriptId: string) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/transcripts/download/${transcriptId}`;
+    const config: RequestInit = {
+      method: 'GET',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Download failed with status ${response.status}`);
+    }
+
+    // Get the blob from the response
+    const blob = await response.blob();
+
+    // Get filename from response headers
+    const contentDisposition = response.headers.get('content-disposition');
+    let filename = 'transcript.pdf'; // default
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    // Create a download link and trigger the download
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+
+    return { success: true, message: 'Transcript downloaded successfully' };
+  }
+};
+
 // Timetables API
 export const timetablesAPI = {
   getAll: async () => {

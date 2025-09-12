@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { studentsAPI } from '../../services/api';
+import { studentsAPI, transcriptsAPI } from '../../services/api';
 import { Download, FileText } from 'lucide-react';
 
 const TranscriptPDFDownload: React.FC = () => {
@@ -18,7 +18,9 @@ const TranscriptPDFDownload: React.FC = () => {
     setLoading(true);
     try {
       const studentData = await studentsAPI.getByUserId(user?.id || '');
-      setTranscripts(studentData.transcripts);
+      // Fetch transcripts using the transcripts API
+      const transcriptsData = await transcriptsAPI.getByStudentId(studentData._id);
+      setTranscripts(transcriptsData);
     } catch (error) {
       console.error('Error fetching transcripts:', error);
     } finally {
@@ -28,11 +30,8 @@ const TranscriptPDFDownload: React.FC = () => {
 
   const downloadTranscript = async (transcript: any) => {
     try {
-      // Use the API download method
-      await studentsAPI.downloadTranscript(
-        transcript._id,
-        transcript.originalName
-      );
+      // Use the transcripts API download method
+      await transcriptsAPI.download(transcript._id);
     } catch (error) {
       console.error('Error downloading transcript:', error);
       alert('Failed to download transcript. Please try again.');
