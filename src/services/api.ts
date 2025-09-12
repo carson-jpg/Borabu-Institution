@@ -180,6 +180,45 @@ export const studentsAPI = {
     }
 
     return data;
+  },
+  downloadTranscript: async (transcriptId: string, fileName: string) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/transcripts/download/${transcriptId}`;
+    const config: RequestInit = {
+      method: 'GET',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Download failed with status ${response.status}`);
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+
+      // Create a download link and trigger the download
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      return { success: true, message: 'Transcript downloaded successfully' };
+    } catch (error) {
+      console.error('Error downloading transcript:', error);
+      throw error;
+    }
   }
 };
 

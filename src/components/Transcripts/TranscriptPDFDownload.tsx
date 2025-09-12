@@ -28,12 +28,8 @@ const TranscriptPDFDownload: React.FC = () => {
 
   const downloadTranscript = async (transcript: any) => {
     try {
-      // Get the student data to get the student ID
-      const studentData = await studentsAPI.getByUserId(user?.id || '');
-      
       // Use the API download method
       await studentsAPI.downloadTranscript(
-        studentData._id,
         transcript._id,
         transcript.originalName
       );
