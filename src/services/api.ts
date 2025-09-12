@@ -141,7 +141,46 @@ export const studentsAPI = {
       body: JSON.stringify(courseData)
     });
   },
-  // ... other methods
+  uploadTranscript: async (formData: FormData) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/students/upload-transcript`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData
+    };
+
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Upload failed with status ${response.status}`);
+    }
+
+    return data;
+  },
+  uploadTranscriptsBatch: async (formData: FormData) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/students/upload-transcripts`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData
+    };
+
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Batch upload failed with status ${response.status}`);
+    }
+
+    return data;
+  }
 };
 
 // Grades API
