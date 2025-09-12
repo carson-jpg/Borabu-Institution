@@ -8,6 +8,10 @@ const transcriptSchema = new mongoose.Schema({
   },
   filePath: {
     type: String,
+    required: false // Make optional since we'll store data in DB
+  },
+  fileData: {
+    type: Buffer,
     required: true
   },
   originalName: {

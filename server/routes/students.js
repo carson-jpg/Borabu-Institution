@@ -161,10 +161,14 @@ router.post('/upload-transcript', auth, authorize('admin'), upload.single('trans
       return res.status(404).json({ message: `Student not found with admission number: ${admissionNo}` });
     }
 
+    // Read file data
+    const fileData = fs.readFileSync(filePath);
+
     // Create a new transcript entry
     const transcript = new Transcript({
       studentId: student._id,
-      filePath: filePath,
+      filePath: filePath, // Keep for backward compatibility
+      fileData: fileData,
       originalName: req.file.originalname,
       admissionNo: student.admissionNo,
       uploadedBy: req.user._id,
@@ -236,10 +240,14 @@ router.post('/upload-transcripts', auth, authorize('admin'), upload.array('trans
           continue;
         }
 
+        // Read file data
+        const fileData = fs.readFileSync(filePath);
+
         // Create a new transcript entry
         const transcript = new Transcript({
           studentId: student._id,
-          filePath: filePath,
+          filePath: filePath, // Keep for backward compatibility
+          fileData: fileData,
           originalName: file.originalname,
           admissionNo: student.admissionNo,
           uploadedBy: req.user._id,

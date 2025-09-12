@@ -82,9 +82,9 @@ router.get('/download/:transcriptId', auth, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Check if file exists
-    if (!fs.existsSync(transcript.filePath)) {
-      return res.status(404).json({ message: 'Transcript file not found on server' });
+    // Check if file data exists in database
+    if (!transcript.fileData || transcript.fileData.length === 0) {
+      return res.status(404).json({ message: 'Transcript file data not found in database' });
     }
 
     // Set appropriate headers for file download
@@ -92,14 +92,8 @@ router.get('/download/:transcriptId', auth, async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${transcript.originalName}"`);
     res.setHeader('Content-Length', transcript.fileSize);
 
-    // Stream the file
-    const fileStream = fs.createReadStream(transcript.filePath);
-    fileStream.pipe(res);
-
-    fileStream.on('error', (error) => {
-      console.error('Error streaming file:', error);
-      res.status(500).json({ message: 'Error downloading file' });
-    });
+    // Send the file data from database
+    res.send(transcript.fileData);
 
   } catch (error) {
     console.error('Error downloading transcript:', error);
