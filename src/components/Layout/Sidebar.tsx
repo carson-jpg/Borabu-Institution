@@ -1,16 +1,17 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Home, 
-  BookOpen, 
-  Users, 
-  GraduationCap, 
-  Calendar, 
-  CreditCard, 
-  Bell, 
+import {
+  Home,
+  BookOpen,
+  Users,
+  GraduationCap,
+  Calendar,
+  CreditCard,
+  Bell,
   BarChart,
   Settings,
-  Building
+  Building,
+  FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen }) =>
           { id: 'students', icon: GraduationCap, label: 'Students' },
           { id: 'reports', icon: BarChart, label: 'Reports' },
           { id: 'announcements', icon: Bell, label: 'Announcements' },
+          { id: 'transcripts', icon: FileText, label: 'Transcript Management' },
+          { id: 'timetables', icon: Calendar, label: 'Timetable Management' },
           { id: 'settings', icon: Settings, label: 'Settings' }
         ];
       case 'teacher':

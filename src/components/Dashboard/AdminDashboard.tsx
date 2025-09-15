@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react';
 import { Users, BookOpen, GraduationCap, Building, AlertTriangle, FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { departmentsAPI, coursesAPI, usersAPI, studentsAPI, paymentsAPI, announcementsAPI, gradesAPI } from '../../services/api';
-import TranscriptUpload from '../Transcripts/TranscriptUpload';
-import FeeManagement from '../Fees/FeeManagement';
-import TimetableManagement from '../Timetable/TimetableManagement';
+
 
 // Define types for departments, courses, users, and students
 interface Department {
@@ -34,7 +32,11 @@ interface RecentActivity {
   type: 'enrollment' | 'grade' | 'payment' | 'announcement';
 }
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  onTabChange: (tab: string) => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onTabChange }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -360,41 +362,38 @@ const AdminDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-4 md:p-6">
         <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+          <button
+            onClick={() => onTabChange('departments')}
+            className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+          >
             <Building className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
             <span className="text-xs md:text-sm font-medium text-gray-700">Add Department</span>
           </button>
-          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
+          <button
+            onClick={() => onTabChange('courses')}
+            className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+          >
             <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
             <span className="text-xs md:text-sm font-medium text-gray-700">Create Course</span>
           </button>
-          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+          <button
+            onClick={() => onTabChange('users')}
+            className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors"
+          >
             <Users className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
             <span className="text-xs md:text-sm font-medium text-gray-700">Manage Users</span>
           </button>
-          <button className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors">
+          <button
+            onClick={() => onTabChange('transcripts')}
+            className="p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors"
+          >
             <FileText className="h-5 w-5 md:h-6 md:w-6 text-gray-400 mx-auto mb-1 md:mb-2" />
             <span className="text-xs md:text-sm font-medium text-gray-700">Upload Transcript</span>
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Fee Management</h3>
-        <FeeManagement />
-      </div>
 
-      {/* Transcript Upload Section */}
-      <div className="bg-white rounded-lg shadow p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Transcript Management</h3>
-        <TranscriptUpload />
-      </div>
-
-      {/* Timetable Management Section */}
-      <div className="bg-white rounded-lg shadow p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4">Timetable Management</h3>
-        <TimetableManagement />
-      </div>
     </div>
   );
 };

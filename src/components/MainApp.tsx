@@ -15,6 +15,8 @@ import DepartmentManagement from './Departments/DepartmentManagement';
 import ReportManagement from './Reports/ReportManagement';
 import UserManagement from './Users/UserManagement';
 import TranscriptDownload from './Transcripts/TranscriptDownload';
+import TranscriptUpload from './Transcripts/TranscriptUpload';
+import TimetableManagement from './Timetable/TimetableManagement';
 import TeacherResultsView from './Grades/TeacherResultsView';
 
 const MainApp: React.FC = () => {
@@ -25,7 +27,7 @@ const MainApp: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        if (user?.role === 'admin') return <AdminDashboard />;
+        if (user?.role === 'admin') return <AdminDashboard onTabChange={setActiveTab} />;
         if (user?.role === 'teacher') return <TeacherDashboard />;
         if (user?.role === 'student') return <StudentDashboard />;
         break;
@@ -51,10 +53,14 @@ const MainApp: React.FC = () => {
         return <GradeManagement />;
       case 'reports':
         return <ReportManagement />;
+      case 'transcripts':
+        return <TranscriptUpload />;
+      case 'timetables':
+        return <TimetableManagement />;
       case 'settings':
         return <div className="p-6"><h1 className="text-2xl font-bold">Settings</h1><p className="text-gray-600">Settings functionality coming soon...</p></div>;
       default:
-        return <AdminDashboard />;
+        return <AdminDashboard onTabChange={setActiveTab} />;
     }
   };
 
