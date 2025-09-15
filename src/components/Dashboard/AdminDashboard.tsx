@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Users, BookOpen, GraduationCap, Building, AlertTriangle, FileText } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { departmentsAPI, coursesAPI, usersAPI, studentsAPI, paymentsAPI, announcementsAPI, gradesAPI } from '../../services/api';
 import TranscriptUpload from '../Transcripts/TranscriptUpload';
 import FeeManagement from '../Fees/FeeManagement';
@@ -205,6 +206,20 @@ const AdminDashboard: React.FC = () => {
     }).length
   })).filter(dept => dept !== null && dept !== undefined);
 
+  // Prepare data for charts
+  const studentDistributionData = departmentStats.map(dept => ({
+    name: dept.name || 'Unknown',
+    value: dept.studentCount,
+    fill: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+  }));
+
+  const courseDistributionData = departmentStats.map(dept => ({
+    name: dept.name || 'Unknown',
+    courses: dept.courseCount
+  }));
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
@@ -238,6 +253,48 @@ const AdminDashboard: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Student Distribution Pie Chart */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-medium text-gray-900 mb-4">Student Distribution by Department</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={studentDistributionData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {studentDistributionData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Courses per Department Bar Chart */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-medium text-gray-900 mb-4">Courses per Department</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={courseDistributionData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="courses" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
