@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Users, BookOpen, GraduationCap, Building, AlertTriangle, FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { departmentsAPI, coursesAPI, usersAPI, studentsAPI, paymentsAPI, announcementsAPI, gradesAPI } from '../../services/api';
+import { departmentsAPI, coursesAPI, usersAPI, studentsAPI, paymentsAPI, announcementsAPI, gradesAPI, reportsAPI } from '../../services/api';
 
 
 // Define types for departments, courses, users, and students

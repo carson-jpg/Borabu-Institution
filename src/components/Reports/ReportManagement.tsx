@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Download, BarChart3, Users, BookOpen, TrendingUp } from 'lucide-react';
+import { Download, BarChart3, Users, BookOpen, TrendingUp, Loader } from 'lucide-react';
+import { reportsAPI } from '../../services/api';
 
 const ReportManagement: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<string>('');
@@ -7,6 +8,8 @@ const ReportManagement: React.FC = () => {
     start: '',
     end: ''
   });
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const reportTypes = [
     {
@@ -35,10 +38,38 @@ const ReportManagement: React.FC = () => {
     }
   ];
 
-  const handleGenerateReport = () => {
-    // This would typically call an API to generate the report
-    console.log('Generating report:', selectedReport, dateRange);
-    alert(`Report generation started for: ${selectedReport}`);
+  const handleGenerateReport = async () => {
+    if (!selectedReport || !dateRange.start || !dateRange.end) {
+      alert('Please select a report and specify a valid date range.');
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const apiDateRange = {
+        startDate: dateRange.start,
+        endDate: dateRange.end
+      };
+      switch (selectedReport) {
+        case 'student-performance':
+          await reportsAPI.generateStudentPerformance(apiDateRange);
+          break;
+        case 'attendance-summary':
+          await reportsAPI.generateAttendanceSummary(apiDateRange);
+          break;
+        case 'course-enrollment':
+          await reportsAPI.generateCourseEnrollment(apiDateRange);
+          break;
+        case 'financial-summary':
+          await reportsAPI.generateFinancialSummary(apiDateRange);
+          break;
+        default:
+          alert('Invalid report selected.');
+      }
+    } catch (error) {
+      alert(`Error generating report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDownloadReport = () => {
@@ -114,10 +145,20 @@ const ReportManagement: React.FC = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={handleGenerateReport}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  disabled={isGenerating}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Generate Report
+                  {isGenerating ? (
+                    <>
+                      <Loader className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Generate Report
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleDownloadReport}
