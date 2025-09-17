@@ -133,6 +133,7 @@ const seedAdminTeachers = async () => {
       const existingTeacher = await Teacher.findOne({ email: teacher.email });
       if (!existingTeacher && departmentMap[teacher.departmentName]) {
         const teacherRecord = new Teacher({
+          userId: teacherUser._id,
           name: teacher.name,
           email: teacher.email,
           departmentId: departmentMap[teacher.departmentName]

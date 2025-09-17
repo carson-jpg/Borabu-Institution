@@ -3,13 +3,18 @@ import { useEffect } from 'react';
 import { Bell, Plus, Edit, Trash2, Calendar, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { announcementsAPI } from '../../services/api';
+import { Announcement } from '../../types';
 
 const AnnouncementManagement: React.FC = () => {
   const { user } = useAuth();
-  const [announcements, setAnnouncements] = useState([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedAudience, setSelectedAudience] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  // New states for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -38,6 +43,21 @@ const AnnouncementManagement: React.FC = () => {
     const [content, setContent] = useState('');
     const [audience, setAudience] = useState<string[]>([]);
 
+    useEffect(() => {
+      if (isEditing && editingAnnouncementId) {
+        const announcementToEdit = announcements.find(a => a._id === editingAnnouncementId);
+        if (announcementToEdit) {
+          setTitle(announcementToEdit.title);
+          setContent(announcementToEdit.content);
+          setAudience(announcementToEdit.targetAudience);
+        }
+      } else {
+        setTitle('');
+        setContent('');
+        setAudience([]);
+      }
+    }, [isEditing, editingAnnouncementId, announcements]);
+
     const handleAudienceChange = (role: string) => {
       setAudience(prev => 
         prev.includes(role) 
@@ -54,33 +74,46 @@ const AnnouncementManagement: React.FC = () => {
         content,
         targetAudience: audience
       };
-      
-      announcementsAPI.create(announcementData)
-        .then(newAnnouncement => {
-          setAnnouncements([newAnnouncement, ...announcements]);
-          setShowAddForm(false);
-          setTitle('');
-          setContent('');
-          setAudience([]);
-        })
-        .catch(error => {
-          console.error('Error creating announcement:', error);
-        });
+
+      if (isEditing && editingAnnouncementId) {
+        announcementsAPI.update(editingAnnouncementId, announcementData)
+          .then(updatedAnnouncement => {
+            setAnnouncements(announcements.map(a => a._id === editingAnnouncementId ? updatedAnnouncement : a));
+            setIsEditing(false);
+            setEditingAnnouncementId(null);
+            setShowAddForm(false);
+          })
+          .catch(error => {
+            console.error('Error updating announcement:', error);
+          });
+      } else {
+        announcementsAPI.create(announcementData)
+          .then(newAnnouncement => {
+            setAnnouncements([newAnnouncement, ...announcements]);
+            setShowAddForm(false);
+            setTitle('');
+            setContent('');
+            setAudience([]);
+          })
+          .catch(error => {
+            console.error('Error creating announcement:', error);
+          });
+      }
     };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        </div>
+      );
+    }
 
     return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
         <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div className="mt-3">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Announcement</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{isEditing ? 'Edit Announcement' : 'Create New Announcement'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -123,7 +156,11 @@ const AnnouncementManagement: React.FC = () => {
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setIsEditing(false);
+                    setEditingAnnouncementId(null);
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
@@ -132,7 +169,7 @@ const AnnouncementManagement: React.FC = () => {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
                 >
-                  Create Announcement
+                  {isEditing ? 'Update Announcement' : 'Create Announcement'}
                 </button>
               </div>
             </form>
@@ -140,6 +177,24 @@ const AnnouncementManagement: React.FC = () => {
         </div>
       </div>
     );
+  };
+
+  const handleEdit = (id: string) => {
+    setIsEditing(true);
+    setEditingAnnouncementId(id);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this announcement?')) {
+      announcementsAPI.delete(id)
+        .then(() => {
+          setAnnouncements(announcements.filter(a => a._id !== id));
+        })
+        .catch(error => {
+          console.error('Error deleting announcement:', error);
+        });
+    }
   };
 
   return (
@@ -159,7 +214,11 @@ const AnnouncementManagement: React.FC = () => {
           </select>
           {(user?.role === 'admin' || user?.role === 'teacher') && (
             <button
-              onClick={() => setShowAddForm(true)}
+              onClick={() => {
+                setShowAddForm(true);
+                setIsEditing(false);
+                setEditingAnnouncementId(null);
+              }}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -205,10 +264,16 @@ const AnnouncementManagement: React.FC = () => {
                 
                 {(user?.role === 'admin' || announcement.postedBy._id === user?.id) && (
                   <div className="flex space-x-2 ml-4">
-                    <button className="p-2 text-gray-400 hover:text-blue-600">
+                    <button
+                      onClick={() => handleEdit(announcement._id)}
+                      className="p-2 text-gray-400 hover:text-blue-600"
+                    >
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-red-600">
+                    <button
+                      onClick={() => handleDelete(announcement._id)}
+                      className="p-2 text-gray-400 hover:text-red-600"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -218,19 +283,6 @@ const AnnouncementManagement: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {filteredAnnouncements.length === 0 && (
-        <div className="text-center py-12">
-          <Bell className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No announcements found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {user?.role === 'admin' || user?.role === 'teacher' 
-              ? 'Create your first announcement to get started.' 
-              : 'Check back later for new announcements.'
-            }
-          </p>
-        </div>
-      )}
 
       {showAddForm && <AddAnnouncementForm />}
     </div>

@@ -114,14 +114,61 @@ export const departmentsAPI = {
   getAll: async () => {
     return apiRequest('/departments');
   },
+  getById: async (id: string) => {
+    return apiRequest(`/departments/${id}`);
+  },
   // ... other methods
+};
+
+// Teachers API
+export const teachersAPI = {
+  getAll: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/teachers${queryString ? `?${queryString}` : ''}`);
+  },
+  getByUserId: async (userId: string) => {
+    return apiRequest(`/teachers/user/${userId}`);
+  },
+  create: async (teacherData: any) => {
+    return apiRequest('/teachers', {
+      method: 'POST',
+      body: JSON.stringify(teacherData)
+    });
+  },
+  update: async (id: string, teacherData: any) => {
+    return apiRequest(`/teachers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(teacherData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/teachers/${id}`, {
+      method: 'DELETE'
+    });
+  }
 };
 
 // Courses API
 export const coursesAPI = {
   getAll: async (params?: any) => {
-    const queryString = params ? new URLSearchParams(params).toString() : '';
+    // Map departmentId to department for the API
+    const apiParams = { ...params };
+    if (apiParams.departmentId) {
+      apiParams.department = apiParams.departmentId;
+      delete apiParams.departmentId;
+    }
+    const queryString = apiParams && Object.keys(apiParams).length > 0 ? new URLSearchParams(apiParams).toString() : '';
     return apiRequest(`/courses${queryString ? `?${queryString}` : ''}`);
+  },
+  registerStudent: async (courseId: string, studentId: string, year?: number) => {
+    const body: any = { studentId };
+    if (year) {
+      body.year = year;
+    }
+    return apiRequest(`/courses/${courseId}/register`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
   },
   // ... other methods
 };
@@ -129,11 +176,34 @@ export const coursesAPI = {
 // Students API
 export const studentsAPI = {
   getAll: async (params?: any) => {
-    const queryString = params ? new URLSearchParams(params).toString() : '';
+    // Map departmentId to department for the API
+    const apiParams = { ...params };
+    if (apiParams.departmentId) {
+      apiParams.department = apiParams.departmentId;
+      delete apiParams.departmentId;
+    }
+    const queryString = apiParams && Object.keys(apiParams).length > 0 ? new URLSearchParams(apiParams).toString() : '';
     return apiRequest(`/students${queryString ? `?${queryString}` : ''}`);
   },
   getByUserId: async (userId: string) => {
     return apiRequest(`/students/user/${userId}`);
+  },
+  create: async (studentData: any) => {
+    return apiRequest('/students', {
+      method: 'POST',
+      body: JSON.stringify(studentData)
+    });
+  },
+  update: async (id: string, studentData: any) => {
+    return apiRequest(`/students/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(studentData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/students/${id}`, {
+      method: 'DELETE'
+    });
   },
   addCourse: async (studentId: string, courseData: any) => {
     return apiRequest(`/students/${studentId}/courses`, {
@@ -380,6 +450,31 @@ export const attendanceAPI = {
   },
 };
 
+// Assignments API
+export const assignmentsAPI = {
+  getAll: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/assignments${queryString ? `?${queryString}` : ''}`);
+  },
+  create: async (assignmentData: any) => {
+    return apiRequest('/assignments', {
+      method: 'POST',
+      body: JSON.stringify(assignmentData)
+    });
+  },
+  update: async (id: string, assignmentData: any) => {
+    return apiRequest(`/assignments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(assignmentData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/assignments/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
 // Transcripts API
 export const transcriptsAPI = {
   getByStudentId: async (studentId: string) => {
@@ -387,6 +482,11 @@ export const transcriptsAPI = {
   },
   getByAdmissionNo: async (admissionNo: string) => {
     return apiRequest(`/transcripts/admission/${admissionNo}`);
+  },
+  view: async (transcriptId: string) => {
+    // For viewing, we return the URL that can be used in an iframe
+    const token = getAuthToken();
+    return `${API_BASE_URL}/transcripts/view/${transcriptId}?token=${token}`;
   },
   download: async (transcriptId: string) => {
     const token = getAuthToken();
@@ -461,6 +561,26 @@ export const timetablesAPI = {
     return apiRequest(`/timetables/${id}`, {
       method: 'DELETE'
     });
+  },
+  bulkUpload: async (formData: FormData) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/timetables/bulk-upload`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData
+    };
+
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Bulk upload failed with status ${response.status}`);
+    }
+
+    return data;
   }
 };
 
@@ -597,5 +717,110 @@ export const reportsAPI = {
     window.URL.revokeObjectURL(downloadUrl);
 
     return { success: true, message: 'Report downloaded successfully' };
+  }
+};
+
+// Messages API
+export const messagesAPI = {
+  getAll: async (params?: any) => {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    return apiRequest(`/messages${queryString ? `?${queryString}` : ''}`);
+  },
+  getUnreadCount: async () => {
+    return apiRequest('/messages/unread-count');
+  },
+  create: async (messageData: any) => {
+    return apiRequest('/messages', {
+      method: 'POST',
+      body: JSON.stringify(messageData)
+    });
+  },
+  markAsRead: async (id: string) => {
+    return apiRequest(`/messages/${id}/read`, {
+      method: 'PUT'
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/messages/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Feedback API
+export const feedbackAPI = {
+  getForTeacher: async () => {
+    return apiRequest('/feedback/teacher');
+  },
+  getForStudent: async () => {
+    return apiRequest('/feedback/student');
+  },
+  create: async (feedbackData: any) => {
+    return apiRequest('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(feedbackData)
+    });
+  },
+  update: async (id: string, feedbackData: any) => {
+    return apiRequest(`/feedback/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(feedbackData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/feedback/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Materials API
+export const materialsAPI = {
+  getByCourse: async (courseId: string) => {
+    return apiRequest(`/materials/course/${courseId}`);
+  },
+  getByTeacher: async () => {
+    return apiRequest('/materials/teacher');
+  },
+  upload: async (formData: FormData) => {
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/materials`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: formData
+    };
+
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Upload failed with status ${response.status}`);
+    }
+
+    return data;
+  },
+  update: async (id: string, materialData: any) => {
+    return apiRequest(`/materials/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(materialData)
+    });
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/materials/${id}`, {
+      method: 'DELETE'
+    });
+  },
+  incrementView: async (id: string) => {
+    return apiRequest(`/materials/${id}/view`, {
+      method: 'PUT'
+    });
+  },
+  incrementDownload: async (id: string) => {
+    return apiRequest(`/materials/${id}/download`, {
+      method: 'PUT'
+    });
   }
 };

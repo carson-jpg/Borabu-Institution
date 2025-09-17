@@ -4,6 +4,36 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Create user (Admin only)
+router.post('/', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    const user = new User({
+      name,
+      email,
+      password,
+      role: role || 'student'
+    });
+
+    await user.save();
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(201).json(userResponse);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get all users (Admin and Teachers)
 router.get('/', auth, authorize('admin', 'teacher'), async (req, res) => {
   try {

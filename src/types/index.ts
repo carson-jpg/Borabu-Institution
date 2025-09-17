@@ -57,12 +57,18 @@ export interface Attendance {
 }
 
 export interface Announcement {
-  id: string;
+  _id: string;
   title: string;
   content: string;
-  date: string;
-  postedBy: string;
+  postedBy: {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
   targetAudience: string[];
+  createdAt: string;
+  isActive: boolean;
 }
 
 export interface FeeRecord {

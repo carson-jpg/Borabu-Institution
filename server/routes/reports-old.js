@@ -16,17 +16,6 @@ router.post('/student-performance', auth, async (req, res) => {
   try {
     const { startDate, endDate } = req.body;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start date and end date are required' });
-    }
-
-    // Validate date format
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
-
     // Get all students with their grades
     const students = await Student.find()
       .populate('departmentId')
@@ -34,8 +23,8 @@ router.post('/student-performance', auth, async (req, res) => {
 
     const grades = await Grade.find({
       createdAt: {
-        $gte: start,
-        $lte: end
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       }
     }).populate('studentId').populate('courseId');
 
@@ -62,7 +51,7 @@ router.post('/student-performance', auth, async (req, res) => {
 
     // Student performance table
     const tableData = students.map(student => {
-      const studentGrades = grades.filter(g => g.studentId && g.studentId._id.toString() === student._id.toString());
+      const studentGrades = grades.filter(g => g.studentId._id.toString() === student._id.toString());
       const avgGrade = studentGrades.length > 0 ?
         studentGrades.reduce((sum, g) => sum + (g.score || 0), 0) / studentGrades.length : 0;
 
@@ -88,30 +77,19 @@ router.post('/student-performance', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Error generating student performance report:', error);
-    res.status(500).json({ message: `Error generating student performance report: ${error.message}` });
+    res.status(500).json({ message: 'Error generating report' });
   }
 });
 
 // Generate Attendance Summary Report
-router.post('/attendance-summary', auth, async (req, res) => {
+router.post('/attendance-summary', async (req, res) => {
   try {
     const { startDate, endDate } = req.body;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start date and end date are required' });
-    }
-
-    // Validate date format
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
-
     const attendance = await Attendance.find({
       date: {
-        $gte: start,
-        $lte: end
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       }
     }).populate('studentId').populate('courseId');
 
@@ -150,7 +128,7 @@ router.post('/attendance-summary', auth, async (req, res) => {
       course,
       data.total,
       data.present,
-      data.total > 0 ? ((data.present / data.total) * 100).toFixed(2) + '%' : '0%'
+      ((data.present / data.total) * 100).toFixed(2) + '%'
     ]);
 
     doc.autoTable({
@@ -166,12 +144,12 @@ router.post('/attendance-summary', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Error generating attendance summary report:', error);
-    res.status(500).json({ message: `Error generating attendance summary report: ${error.message}` });
+    res.status(500).json({ message: 'Error generating report' });
   }
 });
 
 // Generate Course Enrollment Report
-router.post('/course-enrollment', auth, async (req, res) => {
+router.post('/course-enrollment', async (req, res) => {
   try {
     const courses = await Course.find()
       .populate('departmentId')
@@ -185,12 +163,11 @@ router.post('/course-enrollment', auth, async (req, res) => {
     const totalCourses = courses.length;
     doc.setFontSize(12);
     doc.text(`Total Courses: ${totalCourses}`, 20, 35);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
 
-    // Get enrollment data
+    // Get enrollment data (this would need to be enhanced with actual enrollment data)
     const courseData = courses.map(course => [
-      course.name || 'N/A',
-      course.code || 'N/A',
+      course.name,
+      course.code,
       course.departmentId ? course.departmentId.name : 'N/A',
       course.teacherId ? `${course.teacherId.firstName} ${course.teacherId.lastName}` : 'Not Assigned',
       course.capacity || 'N/A'
@@ -199,7 +176,7 @@ router.post('/course-enrollment', auth, async (req, res) => {
     doc.autoTable({
       head: [['Course Name', 'Course Code', 'Department', 'Teacher', 'Capacity']],
       body: courseData,
-      startY: 55
+      startY: 45
     });
 
     const pdfBuffer = doc.output('arraybuffer');
@@ -209,30 +186,19 @@ router.post('/course-enrollment', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Error generating course enrollment report:', error);
-    res.status(500).json({ message: `Error generating course enrollment report: ${error.message}` });
+    res.status(500).json({ message: 'Error generating report' });
   }
 });
 
 // Generate Financial Summary Report
-router.post('/financial-summary', auth, async (req, res) => {
+router.post('/financial-summary', async (req, res) => {
   try {
     const { startDate, endDate } = req.body;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start date and end date are required' });
-    }
-
-    // Validate date format
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
-
     const payments = await Payment.find({
       createdAt: {
-        $gte: start,
-        $lte: end
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
       }
     }).populate('studentId');
 
@@ -252,7 +218,7 @@ router.post('/financial-summary', auth, async (req, res) => {
     doc.text(`Successful Payments: ${successfulPayments}`, 20, 60);
     doc.text(`Total Amount Collected: $${totalAmount.toFixed(2)}`, 20, 70);
 
-    // Payment details table (limit to first 50 for PDF size)
+    // Payment details table
     const paymentData = payments.slice(0, 50).map(payment => [
       payment.studentId ? `${payment.studentId.firstName} ${payment.studentId.lastName}` : 'N/A',
       payment.amount ? `$${payment.amount.toFixed(2)}` : '$0.00',
@@ -273,7 +239,7 @@ router.post('/financial-summary', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Error generating financial summary report:', error);
-    res.status(500).json({ message: `Error generating financial summary report: ${error.message}` });
+    res.status(500).json({ message: 'Error generating report' });
   }
 });
 

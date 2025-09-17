@@ -1,0 +1,5 @@
+courseCode,teacherEmail,dayOfWeek,startTime,endTime,room,type,semester
+CS101,john.doe@example.com,Monday,09:00,10:30,Lab 101,Lecture,1
+CS102,jane.smith@example.com,Tuesday,10:45,12:15,Room 201,Practical,1
+MATH101,bob.johnson@example.com,Wednesday,14:00,15:30,Room 301,Tutorial,2
+PHYS101,alice.wilson@example.com,Thursday,16:00,17:30,Lab 102,Lab,1

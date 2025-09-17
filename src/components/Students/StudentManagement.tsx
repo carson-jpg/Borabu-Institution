@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Search, Filter, Plus, Edit, Trash2, GraduationCap } from 'lucide-react';
-import { studentsAPI, departmentsAPI } from '../../services/api';
+import { studentsAPI, departmentsAPI, usersAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const StudentManagement: React.FC = () => {
@@ -10,28 +10,29 @@ const StudentManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = async () => {
+    try {
+      setError(null);
+      const [studentsData, departmentsData] = await Promise.all([
+        studentsAPI.getAll(),
+        departmentsAPI.getAll()
+      ]);
+
+      setStudents(studentsData);
+      setDepartments(departmentsData);
+    } catch (error) {
+      console.error('Error fetching students data:', error);
+      setError('Failed to load student data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setError(null);
-        const [studentsData, departmentsData] = await Promise.all([
-          studentsAPI.getAll(),
-          departmentsAPI.getAll()
-        ]);
-
-        setStudents(studentsData);
-        setDepartments(departmentsData);
-      } catch (error) {
-        console.error('Error fetching students data:', error);
-        setError('Failed to load student data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -97,74 +98,187 @@ const StudentManagement: React.FC = () => {
     return 'Pending';
   };
 
-  const AddStudentForm = () => (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Student</h3>
-          <form className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Full Name</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter student name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter email address"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Admission Number</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter admission number"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Department</label>
-              <select className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Department</option>
-                {departments.map(dept => (
-                  <option key={dept._id} value={dept._id}>{dept.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Year</label>
-              <select className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Year</option>
-                <option value="1">Year 1</option>
-                <option value="2">Year 2</option>
-                <option value="3">Year 3</option>
-              </select>
-            </div>
-            <div className="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
-              >
-                Add Student
-              </button>
-            </div>
-          </form>
+  const handleEdit = (student: any) => {
+    setEditingStudent(student);
+  };
+
+  const handleDelete = async (studentId: string) => {
+    if (window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+      try {
+        await studentsAPI.delete(studentId);
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting student:', error);
+        alert('Failed to delete student. Please try again.');
+      }
+    }
+  };
+
+  const AddStudentForm = () => {
+    const [formData, setFormData] = React.useState({
+      name: '',
+      email: '',
+      admissionNo: '',
+      departmentId: '',
+      year: ''
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        if (editingStudent) {
+          await studentsAPI.update(editingStudent._id, {
+            admissionNo: formData.admissionNo,
+            departmentId: formData.departmentId,
+            year: Number(formData.year)
+          });
+          setEditingStudent(null);
+        } else {
+          // Create user first
+          const newUser = await usersAPI.create({
+            name: formData.name,
+            email: formData.email,
+            password: 'defaultPassword123', // You may want to generate or ask for password
+            role: 'student'
+          });
+
+          // Create student linked to user
+          await studentsAPI.create({
+            userId: newUser._id,
+            admissionNo: formData.admissionNo,
+            departmentId: formData.departmentId,
+            year: Number(formData.year),
+            courses: []
+          });
+        }
+        setShowAddForm(false);
+        fetchData();
+      } catch (error) {
+        console.error('Error saving student:', error);
+      }
+    };
+
+    React.useEffect(() => {
+      if (editingStudent) {
+        setFormData({
+          name: editingStudent.userId?.name || '',
+          email: editingStudent.userId?.email || '',
+          admissionNo: editingStudent.admissionNo || '',
+          departmentId: editingStudent.departmentId?._id || '',
+          year: editingStudent.year ? editingStudent.year.toString() : ''
+        });
+        setShowAddForm(true);
+      }
+    }, [editingStudent]);
+
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="mt-3">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {editingStudent ? 'Edit Student' : 'Add New Student'}
+            </h3>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {!editingStudent && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter student name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Admission Number</label>
+                <input
+                  type="text"
+                  name="admissionNo"
+                  required
+                  value={formData.admissionNo}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter admission number"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Department</label>
+                <select
+                  name="departmentId"
+                  required
+                  value={formData.departmentId}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Department</option>
+                  {departments.map(dept => (
+                    <option key={dept._id} value={dept._id}>{dept.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <select
+                  name="year"
+                  required
+                  value={formData.year}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Year</option>
+                  <option value="1">Year 1</option>
+                  <option value="2">Year 2</option>
+                  <option value="3">Year 3</option>
+                  <option value="4">Year 4</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setEditingStudent(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                >
+                  {editingStudent ? 'Update' : 'Add'} Student
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -274,11 +388,17 @@ const StudentManagement: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button
+                          onClick={() => handleEdit(student)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
                           <Edit className="h-4 w-4" />
                         </button>
                         {user?.role === 'admin' && (
-                          <button className="text-red-600 hover:text-red-900">
+                          <button
+                            onClick={() => handleDelete(student._id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}

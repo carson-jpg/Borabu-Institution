@@ -52,7 +52,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Create announcement (Teachers and Admin)
-router.post('/', auth, authorize('teacher', 'admin'), async (req, res) => {
+router.post('/', auth, authorize('admin'), async (req, res) => {
   try {
     const { title, content, targetAudience, priority } = req.body;
 

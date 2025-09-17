@@ -1,0 +1,4 @@
+- Add state for departments: const [departments, setDepartments] = useState<any[]>([]);
+- Add state for selectedDepartment: const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+- Remove unused Department interface
+- Remove unused recentGrades variable

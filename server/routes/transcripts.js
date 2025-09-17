@@ -63,6 +63,44 @@ router.get('/admission/:admissionNo', auth, async (req, res) => {
   }
 });
 
+// View transcript (inline display)
+router.get('/view/:transcriptId', auth, async (req, res) => {
+  try {
+    const { transcriptId } = req.params;
+
+    const transcript = await Transcript.findById(transcriptId)
+      .populate('studentId', 'userId admissionNo')
+      .populate('uploadedBy', 'name email');
+
+    if (!transcript) {
+      return res.status(404).json({ message: 'Transcript not found' });
+    }
+
+    // Check authorization
+    const student = await Student.findById(transcript.studentId);
+    if (req.user.role === 'student' && student.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Check if file data exists in database
+    if (!transcript.fileData || transcript.fileData.length === 0) {
+      return res.status(404).json({ message: 'Transcript file data not found in database' });
+    }
+
+    // Set appropriate headers for inline display
+    res.setHeader('Content-Type', transcript.mimeType || 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Content-Length', transcript.fileSize);
+
+    // Send the file data from database
+    res.send(transcript.fileData);
+
+  } catch (error) {
+    console.error('Error viewing transcript:', error);
+    res.status(500).json({ message: 'Failed to view transcript' });
+  }
+});
+
 // Download transcript
 router.get('/download/:transcriptId', auth, async (req, res) => {
   try {

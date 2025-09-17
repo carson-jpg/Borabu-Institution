@@ -37,6 +37,10 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/transcripts', require('./routes/transcripts'));
 app.use('/api/timetables', require('./routes/timetables'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/assignments', require('./routes/assignments'));
+app.use('/api/messages', require('./routes/messages'));
+app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/materials', require('./routes/materials'));
 
 // Connect to MongoDB with better error handling and retry options
 const mongoURI = process.env.MONGODB_URI;

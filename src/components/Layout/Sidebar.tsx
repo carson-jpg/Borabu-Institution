@@ -11,7 +11,13 @@ import {
   BarChart,
   Settings,
   Building,
-  FileText
+  FileText,
+  User,
+  Award,
+  MessageSquare,
+  Star,
+  TrendingUp,
+  Upload
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -40,11 +46,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen }) =>
         ];
       case 'teacher':
         return [
-          { id: 'dashboard', icon: Home, label: 'Dashboard' },
+          { id: 'overview', icon: BarChart, label: 'Overview' },
+          { id: 'profile', icon: User, label: 'Profile' },
           { id: 'courses', icon: BookOpen, label: 'My Courses' },
-          { id: 'students', icon: GraduationCap, label: 'Students' },
           { id: 'attendance', icon: Calendar, label: 'Attendance' },
-          { id: 'grades', icon: BarChart, label: 'Grades' },
+          { id: 'grades', icon: Award, label: 'Grades' },
+          { id: 'assignments', icon: FileText, label: 'Assignments' },
+          { id: 'materials', icon: Upload, label: 'Materials' },
+          { id: 'messages', icon: MessageSquare, label: 'Messages' },
+          { id: 'feedback', icon: Star, label: 'Feedback' },
+          { id: 'reports', icon: TrendingUp, label: 'Reports' },
           { id: 'announcements', icon: Bell, label: 'Announcements' }
         ];
       case 'student':
@@ -61,37 +72,56 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen }) =>
     }
   };
 
+  const getDashboardTitle = () => {
+    switch (user?.role) {
+      case 'admin':
+        return 'Admin Dashboard';
+      case 'teacher':
+        return 'Teacher Dashboard';
+      case 'student':
+        return 'Student Dashboard';
+      default:
+        return 'Dashboard';
+    }
+  };
+
   const menuItems = getMenuItems();
 
   return (
     <div className={`
-      w-full md:w-64 bg-white shadow-sm border-r h-full overflow-y-auto fixed md:relative z-40 md:z-auto inset-y-0 left-0 
+      w-full md:w-64 bg-gradient-to-b from-slate-50 to-slate-100 shadow-lg border-r border-slate-200 h-full overflow-y-auto fixed md:relative z-40 md:z-auto inset-y-0 left-0
       transform transition-transform duration-300 ease-in-out md:transform-none md:flex md:flex-col
       ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
     `}>
-      <nav className="mt-8">
-        <div className="px-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.id}>
-                  <button
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                      activeTab === item.id
-                        ? 'bg-green-100 text-green-700 border-r-2 border-green-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.label}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+      <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-lg">
+        <h1 className="text-2xl font-bold mb-2">{getDashboardTitle()}</h1>
+        <p className="text-sm opacity-90">Welcome back, {user?.name}</p>
+      </div>
+      <nav className="flex-grow px-4 py-6">
+        <ul className="space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => setActiveTab(item.id)}
+                  className={`group flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    activeTab === item.id
+                      ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                      : 'text-slate-700 hover:bg-white hover:shadow-sm hover:text-blue-600 hover:transform hover:scale-102'
+                  }`}
+                >
+                  <Icon className={`mr-3 h-5 w-5 transition-colors ${
+                    activeTab === item.id
+                      ? 'text-white'
+                      : 'text-slate-500 group-hover:text-blue-600'
+                  }`} />
+                  {item.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
     </div>
   );

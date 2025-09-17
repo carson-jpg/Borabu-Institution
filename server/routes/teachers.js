@@ -53,6 +53,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Get teacher by user ID
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.params.userId }).populate('departmentId', 'name');
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+    res.json(teacher);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Delete a teacher
 router.delete('/:id', async (req, res) => {
   try {
